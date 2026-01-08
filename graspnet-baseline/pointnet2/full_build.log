@@ -1,0 +1,180 @@
+W0105 11:36:00.458000 25865 site-packages/torch/utils/cpp_extension.py:117] No CUDA runtime is found, using CUDA_HOME='/usr'
+running install
+/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/_distutils/cmd.py:79: SetuptoolsDeprecationWarning: setup.py install is deprecated.
+!!
+
+        ********************************************************************************
+        Please avoid running ``setup.py`` directly.
+        Instead, use pypa/build, pypa/installer or other
+        standards-based tools.
+
+        See https://blog.ganssle.io/articles/2021/10/setup-py-deprecated.html for details.
+        ********************************************************************************
+
+!!
+  self.initialize_options()
+/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/_distutils/cmd.py:79: EasyInstallDeprecationWarning: easy_install command is deprecated.
+!!
+
+        ********************************************************************************
+        Please avoid running ``setup.py`` and ``easy_install``.
+        Instead, use pypa/build, pypa/installer or other
+        standards-based tools.
+
+        See https://github.com/pypa/setuptools/issues/917 for details.
+        ********************************************************************************
+
+!!
+  self.initialize_options()
+running bdist_egg
+running egg_info
+creating pointnet2.egg-info
+writing pointnet2.egg-info/PKG-INFO
+writing dependency_links to pointnet2.egg-info/dependency_links.txt
+writing top-level names to pointnet2.egg-info/top_level.txt
+writing manifest file 'pointnet2.egg-info/SOURCES.txt'
+W0105 11:36:00.718000 25865 site-packages/torch/utils/cpp_extension.py:630] Attempted to use ninja as the BuildExtension backend but we could not find ninja.. Falling back to using the slow distutils backend.
+reading manifest file 'pointnet2.egg-info/SOURCES.txt'
+writing manifest file 'pointnet2.egg-info/SOURCES.txt'
+installing library code to build/bdist.linux-x86_64/egg
+running install_lib
+running build_ext
+W0105 11:36:00.731000 25865 site-packages/torch/utils/cpp_extension.py:521] The detected CUDA version (12.0) has a minor version mismatch with the version that was used to compile PyTorch (12.8). Most likely this shouldn't be a problem.
+W0105 11:36:00.731000 25865 site-packages/torch/utils/cpp_extension.py:531] There are no g++ version bounds defined for CUDA version 12.0
+building 'pointnet2._ext' extension
+g++ -pthread -B /home/wey/anaconda3/envs/embodied_ai/compiler_compat -Wno-unused-result -Wsign-compare -DNDEBUG -fwrapv -O2 -Wall -fPIC -O2 -isystem /home/wey/anaconda3/envs/embodied_ai/include -fPIC -O2 -isystem /home/wey/anaconda3/envs/embodied_ai/include -fPIC -I/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/include -I/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/include/torch/csrc/api/include -I/home/wey/anaconda3/envs/embodied_ai/include/python3.10 -c _ext_src/src/ball_query.cpp -o build/temp.linux-x86_64-cpython-310/_ext_src/src/ball_query.o -O2 -I/home/wey/Projects/UR3e_AG95_Grasp_public/graspnet-baseline/pointnet2/_ext_src/include -DTORCH_API_INCLUDE_EXTENSION_H -DTORCH_EXTENSION_NAME=_ext -std=c++17
+_ext_src/src/ball_query.cpp: In function ‘at::Tensor ball_query(at::Tensor, at::Tensor, float, int)’:
+_ext_src/src/ball_query.cpp:20:19: warning: ‘at::DeprecatedTypeProperties& at::Tensor::type() const’ is deprecated: Tensor.type() is deprecated. Instead use Tensor.options(), which in many cases (e.g. in a constructor) is a drop-in replacement. If you were using data from type(), that is now available from Tensor itself, so instead of tensor.type().scalar_type(), use tensor.scalar_type() instead and instead of tensor.type().backend() use tensor.device(). [-Wdeprecated-declarations]
+   20 |   if (new_xyz.type().is_cuda()) {
+      |       ~~~~~~~~~~~~^~
+In file included from /home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/include/ATen/core/Tensor.h:3,
+                 from /home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/include/ATen/Tensor.h:3,
+                 from /home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/include/torch/csrc/autograd/function_hook.h:3,
+                 from /home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/include/torch/csrc/autograd/cpp_hook.h:2,
+                 from /home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/include/torch/csrc/autograd/variable.h:6,
+                 from /home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/include/torch/csrc/autograd/autograd.h:3,
+                 from /home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/include/torch/csrc/api/include/torch/autograd.h:3,
+                 from /home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/include/torch/csrc/api/include/torch/all.h:7,
+                 from /home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/include/torch/extension.h:5,
+                 from /home/wey/Projects/UR3e_AG95_Grasp_public/graspnet-baseline/pointnet2/_ext_src/include/ball_query.h:7,
+                 from _ext_src/src/ball_query.cpp:6:
+/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/include/ATen/core/TensorBody.h:225:30: note: declared here
+  225 |   DeprecatedTypeProperties & type() const {
+      |                              ^~~~
+In file included from /home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/include/c10/macros/Macros.h:1,
+                 from /home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/include/c10/util/Exception.h:5,
+                 from /home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/include/c10/core/Device.h:5,
+                 from /home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/include/ATen/core/TensorBody.h:11:
+/home/wey/Projects/UR3e_AG95_Grasp_public/graspnet-baseline/pointnet2/_ext_src/include/utils.h:12:23: warning: ‘at::DeprecatedTypeProperties& at::Tensor::type() const’ is deprecated: Tensor.type() is deprecated. Instead use Tensor.options(), which in many cases (e.g. in a constructor) is a drop-in replacement. If you were using data from type(), that is now available from Tensor itself, so instead of tensor.type().scalar_type(), use tensor.scalar_type() instead and instead of tensor.type().backend() use tensor.device(). [-Wdeprecated-declarations]
+   12 |     TORCH_CHECK(x.type().is_cuda(), #x " must be a CUDA tensor"); \
+/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/include/torch/headeronly/macros/Macros.h:193:64: note: in definition of macro ‘C10_UNLIKELY’
+  193 | #define C10_UNLIKELY(expr) (__builtin_expect(static_cast<bool>(expr), 0))
+      |                                                                ^~~~
+/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/include/c10/util/Exception.h:588:7: note: in expansion of macro ‘C10_UNLIKELY_OR_CONST’
+  588 |   if (C10_UNLIKELY_OR_CONST(!(cond))) {            \
+      |       ^~~~~~~~~~~~~~~~~~~~~
+/home/wey/Projects/UR3e_AG95_Grasp_public/graspnet-baseline/pointnet2/_ext_src/include/utils.h:12:5: note: in expansion of macro ‘TORCH_CHECK’
+   12 |     TORCH_CHECK(x.type().is_cuda(), #x " must be a CUDA tensor"); \
+      |     ^~~~~~~~~~~
+_ext_src/src/ball_query.cpp:21:5: note: in expansion of macro ‘CHECK_CUDA’
+   21 |     CHECK_CUDA(xyz);
+      |     ^~~~~~~~~~
+/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/include/ATen/core/TensorBody.h:225:30: note: declared here
+  225 |   DeprecatedTypeProperties & type() const {
+      |                              ^~~~
+_ext_src/src/ball_query.cpp:28:19: warning: ‘at::DeprecatedTypeProperties& at::Tensor::type() const’ is deprecated: Tensor.type() is deprecated. Instead use Tensor.options(), which in many cases (e.g. in a constructor) is a drop-in replacement. If you were using data from type(), that is now available from Tensor itself, so instead of tensor.type().scalar_type(), use tensor.scalar_type() instead and instead of tensor.type().backend() use tensor.device(). [-Wdeprecated-declarations]
+   28 |   if (new_xyz.type().is_cuda()) {
+      |       ~~~~~~~~~~~~^~
+/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/include/ATen/core/TensorBody.h:225:30: note: declared here
+  225 |   DeprecatedTypeProperties & type() const {
+      |                              ^~~~
+_ext_src/src/ball_query.cpp:30:73: warning: ‘T* at::Tensor::data() const [with T = float]’ is deprecated: Tensor.data<T>() is deprecated. Please use Tensor.data_ptr<T>() instead. [-Wdeprecated-declarations]
+   30 |                                     radius, nsample, new_xyz.data<float>(),
+      |                                                      ~~~~~~~~~~~~~~~~~~~^~
+/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/include/ATen/core/TensorBody.h:247:7: note: declared here
+  247 |   T * data() const {
+      |       ^~~~
+_ext_src/src/ball_query.cpp:31:52: warning: ‘T* at::Tensor::data() const [with T = float]’ is deprecated: Tensor.data<T>() is deprecated. Please use Tensor.data_ptr<T>() instead. [-Wdeprecated-declarations]
+   31 |                                     xyz.data<float>(), idx.data<int>());
+      |                                     ~~~~~~~~~~~~~~~^~
+/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/include/ATen/core/TensorBody.h:247:7: note: declared here
+  247 |   T * data() const {
+      |       ^~~~
+_ext_src/src/ball_query.cpp:31:69: warning: ‘T* at::Tensor::data() const [with T = int]’ is deprecated: Tensor.data<T>() is deprecated. Please use Tensor.data_ptr<T>() instead. [-Wdeprecated-declarations]
+   31 |                                     xyz.data<float>(), idx.data<int>());
+      |                                                        ~~~~~~~~~~~~~^~
+/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/include/ATen/core/TensorBody.h:247:7: note: declared here
+  247 |   T * data() const {
+      |       ^~~~
+/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/cuda/__init__.py:827: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Traceback (most recent call last):
+  File "/home/wey/Projects/UR3e_AG95_Grasp_public/graspnet-baseline/pointnet2/setup.py", line 18, in <module>
+    setup(
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/__init__.py", line 117, in setup
+    return distutils.core.setup(**attrs)
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/_distutils/core.py", line 186, in setup
+    return run_commands(dist)
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/_distutils/core.py", line 202, in run_commands
+    dist.run_commands()
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/_distutils/dist.py", line 983, in run_commands
+    self.run_command(cmd)
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/dist.py", line 999, in run_command
+    super().run_command(command)
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/_distutils/dist.py", line 1002, in run_command
+    cmd_obj.run()
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/command/install.py", line 109, in run
+    self.do_egg_install()
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/command/install.py", line 167, in do_egg_install
+    self.run_command('bdist_egg')
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/_distutils/cmd.py", line 339, in run_command
+    self.distribution.run_command(command)
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/dist.py", line 999, in run_command
+    super().run_command(command)
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/_distutils/dist.py", line 1002, in run_command
+    cmd_obj.run()
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/command/bdist_egg.py", line 177, in run
+    cmd = self.call_command('install_lib', warn_dir=False)
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/command/bdist_egg.py", line 163, in call_command
+    self.run_command(cmdname)
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/_distutils/cmd.py", line 339, in run_command
+    self.distribution.run_command(command)
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/dist.py", line 999, in run_command
+    super().run_command(command)
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/_distutils/dist.py", line 1002, in run_command
+    cmd_obj.run()
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/command/install_lib.py", line 19, in run
+    self.build()
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/_distutils/command/install_lib.py", line 110, in build
+    self.run_command('build_ext')
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/_distutils/cmd.py", line 339, in run_command
+    self.distribution.run_command(command)
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/dist.py", line 999, in run_command
+    super().run_command(command)
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/_distutils/dist.py", line 1002, in run_command
+    cmd_obj.run()
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/command/build_ext.py", line 99, in run
+    _build_ext.run(self)
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/_distutils/command/build_ext.py", line 365, in run
+    self.build_extensions()
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/utils/cpp_extension.py", line 1082, in build_extensions
+    build_ext.build_extensions(self)
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/_distutils/command/build_ext.py", line 481, in build_extensions
+    self._build_extensions_serial()
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/_distutils/command/build_ext.py", line 507, in _build_extensions_serial
+    self.build_extension(ext)
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/command/build_ext.py", line 264, in build_extension
+    _build_ext.build_extension(self, ext)
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/Cython/Distutils/build_ext.py", line 136, in build_extension
+    super().build_extension(ext)
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/_distutils/command/build_ext.py", line 562, in build_extension
+    objects = self.compiler.compile(
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/setuptools/_distutils/ccompiler.py", line 607, in compile
+    self._compile(obj, src, ext, cc_args, extra_postargs, pp_opts)
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/utils/cpp_extension.py", line 756, in unix_wrap_single_compile
+    cflags = unix_cuda_flags(cflags)
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/utils/cpp_extension.py", line 723, in unix_cuda_flags
+    cflags + _get_cuda_arch_flags(cflags))
+  File "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/torch/utils/cpp_extension.py", line 2438, in _get_cuda_arch_flags
+    arch_list[-1] += '+PTX'
+IndexError: list index out of range

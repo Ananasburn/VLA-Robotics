@@ -1,0 +1,8 @@
+WARNING:root:Failed to import ros dependencies in rigid_transforms.py
+WARNING:root:autolab_core not installed as catkin package, RigidTransform ros methods will be unavailable
+libdecor-gtk-WARNING: Failed to initialize GTK
+Failed to load plugin 'libdecor-gtk.so': failed to init
+No plugins found, falling back on no decorations
+/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/glfw/__init__.py:917: GLFWError: (65548) b'Wayland: The platform does not provide the window position'
+  warnings.warn(message, GLFWError)
+qt.qpa.plugin: Could not find the Qt platform plugin "wayland" in "/home/wey/anaconda3/envs/embodied_ai/lib/python3.10/site-packages/cv2/qt/plugins"

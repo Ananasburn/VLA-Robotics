@@ -1,0 +1,1074 @@
+<?xml version='1.0' encoding='utf-8'?>
+<robot name="dual_ur3e_ag95"><link name="world" /><link name="left_base_link" />
+  <link name="left_base_link_inertia">
+    <visual>
+      <origin rpy="0 0 3.141592653589793" xyz="0 0 0" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/visual/base.dae" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 3.141592653589793" xyz="0 0 0" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/collision/base.stl" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="2.0" />
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <inertia ixx="0.0030531654454" ixy="0.0" ixz="0.0" iyy="0.0030531654454" iyz="0.0" izz="0.005625" />
+    </inertial>
+  </link>
+  <link name="left_shoulder_link">
+    <visual>
+      <origin rpy="0 0 3.141592653589793" xyz="0 0 0" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/visual/shoulder.dae" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 3.141592653589793" xyz="0 0 0" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/collision/shoulder.stl" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="1.98" />
+      <origin rpy="1.570796326794897 0 0" xyz="0.0 0.0 -0.02" />
+      <inertia ixx="0.0027657" ixy="9.6e-06" ixz="-1.49e-05" iyy="0.0021501" iyz="0.0001873" izz="0.0025626" />
+    </inertial>
+  </link>
+  <link name="left_upper_arm_link">
+    <visual>
+      <origin rpy="1.5707963267948966 0 -1.5707963267948966" xyz="0 0 0.12" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/visual/upperarm.dae" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="1.5707963267948966 0 -1.5707963267948966" xyz="0 0 0.12" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/collision/upperarm.stl" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="3.4445" />
+      <origin rpy="0 0 0" xyz="-0.11355 0.0 0.1157" />
+      <inertia ixx="0.0042623" ixy="-4.09e-05" ixz="-0.001496" iyy="0.0460284" iyz="-1.29e-05" izz="0.0448947" />
+    </inertial>
+  </link>
+  <link name="left_forearm_link">
+    <visual>
+      <origin rpy="1.5707963267948966 0 -1.5707963267948966" xyz="0 0 0.027" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/visual/forearm.dae" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="1.5707963267948966 0 -1.5707963267948966" xyz="0 0 0.027" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/collision/forearm.stl" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="1.437" />
+      <origin rpy="0 0 0" xyz="-0.1632 0.0 0.0238" />
+      <inertia ixx="0.0010511" ixy="0.0" ixz="-3.31e-05" iyy="0.0113396" iyz="2.2e-06" izz="0.0110895" />
+    </inertial>
+  </link>
+  <link name="left_wrist_1_link">
+    <visual>
+      <origin rpy="1.5707963267948966 0 0" xyz="0 0 -0.104" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/visual/wrist1.dae" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="1.5707963267948966 0 0" xyz="0 0 -0.104" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/collision/wrist1.stl" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.871" />
+      <origin rpy="1.570796326794897 0 0" xyz="0.0 -0.01 0.0" />
+      <inertia ixx="0.0008174" ixy="-5e-07" ixz="2.1e-06" iyy="0.0006844" iyz="6.17e-05" izz="0.0005497" />
+    </inertial>
+  </link>
+  <link name="left_wrist_2_link">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 -0.08535" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/visual/wrist2.dae" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 -0.08535" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/collision/wrist2.stl" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.805" />
+      <origin rpy="-1.570796326794897 0 0" xyz="0.0 0.01 0.0" />
+      <inertia ixx="0.0006059" ixy="-6e-07" ixz="-6e-07" iyy="0.0005837" iyz="-2.71e-05" izz="0.0003831" />
+    </inertial>
+  </link>
+  <link name="left_wrist_3_link">
+    <visual>
+      <origin rpy="1.5707963267948966 0 0" xyz="0 0 -0.0921" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/visual/wrist3.dae" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="1.5707963267948966 0 0" xyz="0 0 -0.0921" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/collision/wrist3.stl" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.261" />
+      <origin rpy="0 0 0" xyz="0.0 0.0 -0.02" />
+      <inertia ixx="0.000108" ixy="-1e-07" ixz="-1e-07" iyy="0.0001086" iyz="-2e-07" izz="0.0001371" />
+    </inertial>
+  </link>
+  
+  <joint name="left_base_link-base_link_inertia" type="fixed">
+    <parent link="left_base_link" />
+    <child link="left_base_link_inertia" />
+    
+    <origin rpy="0 0 3.141592653589793" xyz="0 0 0" />
+  </joint>
+  <joint name="left_shoulder_pan_joint" type="revolute">
+    <parent link="left_base_link_inertia" />
+    <child link="left_shoulder_link" />
+    <origin rpy="0 0 0" xyz="0 0 0.15185" />
+    <axis xyz="0 0 1" />
+    <limit effort="54.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="3.141592653589793" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="left_shoulder_lift_joint" type="revolute">
+    <parent link="left_shoulder_link" />
+    <child link="left_upper_arm_link" />
+    <origin rpy="1.570796327 0 0" xyz="0 0 0" />
+    <axis xyz="0 0 1" />
+    <limit effort="54.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="3.141592653589793" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="left_elbow_joint" type="revolute">
+    <parent link="left_upper_arm_link" />
+    <child link="left_forearm_link" />
+    <origin rpy="0 0 0" xyz="-0.24355 0 0" />
+    <axis xyz="0 0 1" />
+    <limit effort="28.0" lower="-3.141592653589793" upper="3.141592653589793" velocity="3.141592653589793" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="left_wrist_1_joint" type="revolute">
+    <parent link="left_forearm_link" />
+    <child link="left_wrist_1_link" />
+    <origin rpy="0 0 0" xyz="-0.2132 0 0.13105" />
+    <axis xyz="0 0 1" />
+    <limit effort="9.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="6.283185307179586" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="left_wrist_2_joint" type="revolute">
+    <parent link="left_wrist_1_link" />
+    <child link="left_wrist_2_link" />
+    <origin rpy="1.570796327 0 0" xyz="0 -0.08535 -1.750557762378351e-11" />
+    <axis xyz="0 0 1" />
+    <limit effort="9.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="6.283185307179586" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="left_wrist_3_joint" type="revolute">
+    <parent link="left_wrist_2_link" />
+    <child link="left_wrist_3_link" />
+    <origin rpy="1.570796326589793 3.141592653589793 3.141592653589793" xyz="0 0.0921 -1.8890025766262e-11" />
+    <axis xyz="0 0 1" />
+    <limit effort="9.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="6.283185307179586" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <link name="left_ft_frame" />
+  <joint name="left_wrist_3_link-ft_frame" type="fixed">
+    <parent link="left_wrist_3_link" />
+    <child link="left_ft_frame" />
+    <origin rpy="3.141592653589793 0 0" xyz="0 0 0" />
+  </joint>
+  
+  <link name="left_base" />
+  <joint name="left_base_link-base_fixed_joint" type="fixed">
+    
+    <origin rpy="0 0 3.141592653589793" xyz="0 0 0" />
+    <parent link="left_base_link" />
+    <child link="left_base" />
+  </joint>
+  
+  <link name="left_flange" />
+  <joint name="left_wrist_3-flange" type="fixed">
+    <parent link="left_wrist_3_link" />
+    <child link="left_flange" />
+    <origin rpy="0 -1.5707963267948966 -1.5707963267948966" xyz="0 0 0" />
+  </joint>
+  
+  <link name="left_tool0" />
+  <joint name="left_flange-tool0" type="fixed">
+    
+    <origin rpy="1.5707963267948966 0 1.5707963267948966" xyz="0 0 0" />
+    <parent link="left_flange" />
+    <child link="left_tool0" />
+  </joint>
+
+  
+  <link name="left_grasp_center" />
+  <joint name="left_tool0-grasp_center" type="fixed">
+    <origin rpy="0 0 0" xyz="0 0 0.175" />
+    <parent link="left_tool0" />
+    <child link="left_grasp_center" />
+  </joint>
+
+  
+  
+  <link name="left_ag95_base_link">
+    
+    <inertial>
+      <origin rpy="0 0 0" xyz="7.892486664218268e-13 9.73814800116557e-05 0.0030311891257515876" />
+      <mass value="0.05335674905975589" />
+      <inertia ixx="1.1649107960000001e-05" ixy="0.0" ixz="-0.0" iyy="3.5238551579e-05" iyz="0.0" izz="4.6013976442e-05" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/visual/base_link.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="">
+        <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/collision/base_link.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  
+  <link name="left_ag95_body">
+    
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.040363309423792425 0.014263796342398428 0.04377145101823153" />
+      <mass value="0.7808032509181286" />
+      <inertia ixx="0.001123265235043" ixy="-8.736830970000001e-07" ixz="-2.621049291e-06" iyy="0.001299749220637" iyz="-5.82455398e-07" izz="0.00045489766583800003" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0.0405 0.0143 -0.0147" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/visual/gripper_body.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="">
+        <color rgba="0.1 0.1 0.1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0.0405 0.0143 -0.0147" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/collision/gripper_body.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="left_ag95_body_joint" type="fixed">
+    <origin rpy="0 0 0" xyz="-0.0405 -0.0143 0.0147" />
+    <parent link="left_ag95_base_link" />
+    <child link="left_ag95_body" />
+  </joint>
+  <link name="left_grasp_link" />
+  <joint name="left_grasp_joint" type="fixed">
+    <parent link="left_ag95_base_link" />
+    <child link="left_grasp_link" />
+    <origin rpy="1.5707963267948966 -1.5707963267948966 0" xyz="0.0 0.0 0.19" />
+  </joint>
+  <link name="left_left_outer_knuckle">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.027678515816713697 0.008750002359538555 -4.432690447753185e-07" />
+      <mass value="0.0589066057773107" />
+      <inertia ixx="1e-06" ixy="0.0" ixz="-0.0" iyy="1.7e-05" iyz="0.0" izz="1.7e-05" />
+    </inertial>
+    
+    <visual>
+      <origin rpy="0 0 0" xyz="-0.036673 0.00875 -0.098336" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/visual/outer_knuckle.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="">
+        <color rgba="0.1 0.1 0.1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.036673 0.00875 -0.098336" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/collision/outer_knuckle.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="left_left_inner_knuckle">
+    <inertial>
+      <origin rpy="0 0 0" xyz="-0.001773347637755853 0.025399999999162655 0.028950024725163018" />
+      <mass value="0.07116672022913799" />
+      <inertia ixx="3.7e-05" ixy="0.0" ixz="0.0" iyy="1.7e-05" iyz="-0.0" izz="2.1e-05" />
+    </inertial>
+    
+    <visual>
+      <origin rpy="0 0 0" xyz="-0.016 0.0254 -0.10586" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/visual/inner_knuckle.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="">
+        <color rgba="0.1 0.1 0.1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.016 0.0254 -0.10586" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/collision/inner_knuckle.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="left_left_finger">
+    <inertial>
+      <origin rpy="0 0 0" xyz="-0.013763205176003518 0.008750002316393751 0.007315452388518454" />
+      <mass value="0.035304126564626004" />
+      <inertia ixx="2e-06" ixy="0.0" ixz="1e-06" iyy="4e-06" iyz="-0.0" izz="3e-06" />
+    </inertial>
+    
+    <visual>
+      <origin rpy="0 0 0" xyz="-0.091673 0.00875 -0.098336" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/visual/finger.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="">
+        <color rgba="0.1 0.1 0.1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.091673 0.00875 -0.098336" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/collision/finger.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="left_left_finger_pad">
+    <inertial>
+      <origin rpy="0 0 0" xyz="-0.0022695421476374017 2.3166990085415594e-09 0.00779073905191241" />
+      <mass value="0.047823655444711066" />
+      <inertia ixx="5e-06" ixy="-0.0" ixz="0.0" iyy="4e-06" iyz="0.0" izz="2e-06" />
+    </inertial>
+    
+    <visual>
+      <origin rpy="0 0 0" xyz="-0.0705 -0.0 -0.12056" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/visual/finger_pad.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="">
+        <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.0705 -0.0 -0.12056" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/collision/finger_pad.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="left_left_finger_joint" type="revolute">
+    <origin rpy="0 0.7800050960087859 0" xyz="0.055 0.0 0.0" />
+    <parent link="left_left_outer_knuckle" />
+    <child link="left_left_finger" />
+    <axis xyz="0.0 1.0 -0.0" />
+    <limit effort="50.0" lower="-0.01" upper="0.9400000000000001" velocity="2.1" />
+    <mimic joint="left_left_outer_knuckle_joint" multiplier="1" offset="0" />
+  </joint>
+  <joint name="left_left_inner_knuckle_joint" type="revolute">
+    <origin rpy="0 0.7907912307861107 0.0" xyz="0.0565 -0.0111 0.09116" />
+    <parent link="left_ag95_body" />
+    <child link="left_left_inner_knuckle" />
+    <axis xyz="0.0 -1.0 -0.0" />
+    <limit effort="50.0" lower="-0.01" upper="0.9400000000000001" velocity="2.1" />
+    <mimic joint="left_left_outer_knuckle_joint" multiplier="1" offset="0" />
+  </joint>
+  
+  <joint name="left_left_inner_finger_pad_joint" type="fixed">
+    <origin rpy="0 0 0" xyz="-0.021173 0.00875 0.022224" />
+    <parent link="left_left_finger" />
+    <child link="left_left_finger_pad" />
+  </joint>
+  <joint name="left_left_outer_knuckle_joint" type="revolute">
+    <origin rpy="0 -0.7800050960087859 0" xyz="0.077173 0.00555 0.083636" />
+    <parent link="left_ag95_body" />
+    <child link="left_left_outer_knuckle" />
+    <axis xyz="-0.0 -1.0 0.0" />
+    <limit effort="50.0" lower="0.0" upper="0.93" velocity="2.1" />
+  </joint>
+  <joint name="left_right_finger_joint" type="revolute">
+    <origin rpy="0 0.7800050960087859 0" xyz="0.055 0.0 0.0" />
+    <parent link="left_right_outer_knuckle" />
+    <child link="left_right_finger" />
+    <axis xyz="0.0 1.0 -0.0" />
+    <limit effort="50.0" lower="-0.01" upper="0.9400000000000001" velocity="2.1" />
+    <mimic joint="left_left_outer_knuckle_joint" multiplier="1" offset="0" />
+  </joint>
+  <joint name="left_right_inner_knuckle_joint" type="revolute">
+    <origin rpy="0 0.7907912307861107 -3.141592653589793" xyz="0.0245 0.0397 0.09116" />
+    <parent link="left_ag95_body" />
+    <child link="left_right_inner_knuckle" />
+    <axis xyz="0.0 -1.0 -0.0" />
+    <limit effort="50.0" lower="-0.01" upper="0.9400000000000001" velocity="2.1" />
+    <mimic joint="left_left_outer_knuckle_joint" multiplier="1" offset="0" />
+  </joint>
+  
+  <joint name="left_right_inner_finger_pad_joint" type="fixed">
+    <origin rpy="0 0 0" xyz="-0.021173 0.00875 0.022224" />
+    <parent link="left_right_finger" />
+    <child link="left_right_finger_pad" />
+  </joint>
+  <link name="left_right_outer_knuckle">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.027678515816713697 0.008750002359538555 -4.432690447753185e-07" />
+      <mass value="0.0589066057773107" />
+      <inertia ixx="1e-06" ixy="0.0" ixz="-0.0" iyy="1.7e-05" iyz="0.0" izz="1.7e-05" />
+    </inertial>
+    
+    <visual>
+      <origin rpy="0 0 0" xyz="-0.036673 0.00875 -0.098336" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/visual/outer_knuckle.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="">
+        <color rgba="0.1 0.1 0.1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.036673 0.00875 -0.098336" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/collision/outer_knuckle.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="left_right_inner_knuckle">
+    <inertial>
+      <origin rpy="0 0 0" xyz="-0.001773347637755853 0.025399999999162655 0.028950024725163018" />
+      <mass value="0.07116672022913799" />
+      <inertia ixx="3.7e-05" ixy="0.0" ixz="0.0" iyy="1.7e-05" iyz="-0.0" izz="2.1e-05" />
+    </inertial>
+    
+    <visual>
+      <origin rpy="0 0 0" xyz="-0.016 0.0254 -0.10586" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/visual/inner_knuckle.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="">
+        <color rgba="0.1 0.1 0.1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.016 0.0254 -0.10586" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/collision/inner_knuckle.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="left_right_finger">
+    <inertial>
+      <origin rpy="0 0 0" xyz="-0.013763205176003518 0.008750002316393751 0.007315452388518454" />
+      <mass value="0.035304126564626004" />
+      <inertia ixx="2e-06" ixy="0.0" ixz="1e-06" iyy="4e-06" iyz="-0.0" izz="3e-06" />
+    </inertial>
+    
+    <visual>
+      <origin rpy="0 0 0" xyz="-0.091673 0.00875 -0.098336" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/visual/finger.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="">
+        <color rgba="0.1 0.1 0.1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.091673 0.00875 -0.098336" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/collision/finger.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="left_right_finger_pad">
+    <inertial>
+      <origin rpy="0 0 0" xyz="-0.0022695421476374017 2.3166990085415594e-09 0.00779073905191241" />
+      <mass value="0.047823655444711066" />
+      <inertia ixx="5e-06" ixy="-0.0" ixz="0.0" iyy="4e-06" iyz="0.0" izz="2e-06" />
+    </inertial>
+    
+    <visual>
+      <origin rpy="0 0 0" xyz="-0.0705 -0.0 -0.12056" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/visual/finger_pad.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="">
+        <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.0705 -0.0 -0.12056" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/collision/finger_pad.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="left_right_outer_knuckle_joint" type="revolute">
+    <origin rpy="0 -0.7800050960087859 3.141592653589793" xyz="0.003827000000000011 0.02305 0.083636" />
+    <parent link="left_ag95_body" />
+    <child link="left_right_outer_knuckle" />
+    <axis xyz="-0.0 -1.0 0.0" />
+    <limit effort="50.0" lower="-0.01" upper="0.9400000000000001" velocity="2.1" />
+    <mimic joint="left_left_outer_knuckle_joint" multiplier="1" offset="0" />
+  </joint>
+  <joint name="left_gripper_base_joint" type="fixed">
+    <parent link="left_tool0" />
+    <child link="left_ag95_base_link" />
+    <origin rpy="0 0 0" xyz="0 0 0" />
+  </joint>
+  
+  <joint name="left_base_joint" type="fixed"><parent link="world" /><child link="left_base_link" /><origin xyz="0.8 0.3 0.745" rpy="0 0 0" /></joint><link name="right_base_link" />
+  <link name="right_base_link_inertia">
+    <visual>
+      <origin rpy="0 0 3.141592653589793" xyz="0 0 0" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/visual/base.dae" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 3.141592653589793" xyz="0 0 0" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/collision/base.stl" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="2.0" />
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <inertia ixx="0.0030531654454" ixy="0.0" ixz="0.0" iyy="0.0030531654454" iyz="0.0" izz="0.005625" />
+    </inertial>
+  </link>
+  <link name="right_shoulder_link">
+    <visual>
+      <origin rpy="0 0 3.141592653589793" xyz="0 0 0" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/visual/shoulder.dae" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 3.141592653589793" xyz="0 0 0" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/collision/shoulder.stl" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="1.98" />
+      <origin rpy="1.570796326794897 0 0" xyz="0.0 0.0 -0.02" />
+      <inertia ixx="0.0027657" ixy="9.6e-06" ixz="-1.49e-05" iyy="0.0021501" iyz="0.0001873" izz="0.0025626" />
+    </inertial>
+  </link>
+  <link name="right_upper_arm_link">
+    <visual>
+      <origin rpy="1.5707963267948966 0 -1.5707963267948966" xyz="0 0 0.12" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/visual/upperarm.dae" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="1.5707963267948966 0 -1.5707963267948966" xyz="0 0 0.12" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/collision/upperarm.stl" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="3.4445" />
+      <origin rpy="0 0 0" xyz="-0.11355 0.0 0.1157" />
+      <inertia ixx="0.0042623" ixy="-4.09e-05" ixz="-0.001496" iyy="0.0460284" iyz="-1.29e-05" izz="0.0448947" />
+    </inertial>
+  </link>
+  <link name="right_forearm_link">
+    <visual>
+      <origin rpy="1.5707963267948966 0 -1.5707963267948966" xyz="0 0 0.027" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/visual/forearm.dae" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="1.5707963267948966 0 -1.5707963267948966" xyz="0 0 0.027" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/collision/forearm.stl" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="1.437" />
+      <origin rpy="0 0 0" xyz="-0.1632 0.0 0.0238" />
+      <inertia ixx="0.0010511" ixy="0.0" ixz="-3.31e-05" iyy="0.0113396" iyz="2.2e-06" izz="0.0110895" />
+    </inertial>
+  </link>
+  <link name="right_wrist_1_link">
+    <visual>
+      <origin rpy="1.5707963267948966 0 0" xyz="0 0 -0.104" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/visual/wrist1.dae" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="1.5707963267948966 0 0" xyz="0 0 -0.104" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/collision/wrist1.stl" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.871" />
+      <origin rpy="1.570796326794897 0 0" xyz="0.0 -0.01 0.0" />
+      <inertia ixx="0.0008174" ixy="-5e-07" ixz="2.1e-06" iyy="0.0006844" iyz="6.17e-05" izz="0.0005497" />
+    </inertial>
+  </link>
+  <link name="right_wrist_2_link">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 -0.08535" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/visual/wrist2.dae" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 -0.08535" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/collision/wrist2.stl" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.805" />
+      <origin rpy="-1.570796326794897 0 0" xyz="0.0 0.01 0.0" />
+      <inertia ixx="0.0006059" ixy="-6e-07" ixz="-6e-07" iyy="0.0005837" iyz="-2.71e-05" izz="0.0003831" />
+    </inertial>
+  </link>
+  <link name="right_wrist_3_link">
+    <visual>
+      <origin rpy="1.5707963267948966 0 0" xyz="0 0 -0.0921" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/visual/wrist3.dae" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="1.5707963267948966 0 0" xyz="0 0 -0.0921" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/ur3e/collision/wrist3.stl" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.261" />
+      <origin rpy="0 0 0" xyz="0.0 0.0 -0.02" />
+      <inertia ixx="0.000108" ixy="-1e-07" ixz="-1e-07" iyy="0.0001086" iyz="-2e-07" izz="0.0001371" />
+    </inertial>
+  </link>
+  
+  <joint name="right_base_link-base_link_inertia" type="fixed">
+    <parent link="right_base_link" />
+    <child link="right_base_link_inertia" />
+    
+    <origin rpy="0 0 3.141592653589793" xyz="0 0 0" />
+  </joint>
+  <joint name="right_shoulder_pan_joint" type="revolute">
+    <parent link="right_base_link_inertia" />
+    <child link="right_shoulder_link" />
+    <origin rpy="0 0 0" xyz="0 0 0.15185" />
+    <axis xyz="0 0 1" />
+    <limit effort="54.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="3.141592653589793" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="right_shoulder_lift_joint" type="revolute">
+    <parent link="right_shoulder_link" />
+    <child link="right_upper_arm_link" />
+    <origin rpy="1.570796327 0 0" xyz="0 0 0" />
+    <axis xyz="0 0 1" />
+    <limit effort="54.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="3.141592653589793" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="right_elbow_joint" type="revolute">
+    <parent link="right_upper_arm_link" />
+    <child link="right_forearm_link" />
+    <origin rpy="0 0 0" xyz="-0.24355 0 0" />
+    <axis xyz="0 0 1" />
+    <limit effort="28.0" lower="-3.141592653589793" upper="3.141592653589793" velocity="3.141592653589793" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="right_wrist_1_joint" type="revolute">
+    <parent link="right_forearm_link" />
+    <child link="right_wrist_1_link" />
+    <origin rpy="0 0 0" xyz="-0.2132 0 0.13105" />
+    <axis xyz="0 0 1" />
+    <limit effort="9.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="6.283185307179586" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="right_wrist_2_joint" type="revolute">
+    <parent link="right_wrist_1_link" />
+    <child link="right_wrist_2_link" />
+    <origin rpy="1.570796327 0 0" xyz="0 -0.08535 -1.750557762378351e-11" />
+    <axis xyz="0 0 1" />
+    <limit effort="9.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="6.283185307179586" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <joint name="right_wrist_3_joint" type="revolute">
+    <parent link="right_wrist_2_link" />
+    <child link="right_wrist_3_link" />
+    <origin rpy="1.570796326589793 3.141592653589793 3.141592653589793" xyz="0 0.0921 -1.8890025766262e-11" />
+    <axis xyz="0 0 1" />
+    <limit effort="9.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="6.283185307179586" />
+    <dynamics damping="0" friction="0" />
+  </joint>
+  <link name="right_ft_frame" />
+  <joint name="right_wrist_3_link-ft_frame" type="fixed">
+    <parent link="right_wrist_3_link" />
+    <child link="right_ft_frame" />
+    <origin rpy="3.141592653589793 0 0" xyz="0 0 0" />
+  </joint>
+  
+  <link name="right_base" />
+  <joint name="right_base_link-base_fixed_joint" type="fixed">
+    
+    <origin rpy="0 0 3.141592653589793" xyz="0 0 0" />
+    <parent link="right_base_link" />
+    <child link="right_base" />
+  </joint>
+  
+  <link name="right_flange" />
+  <joint name="right_wrist_3-flange" type="fixed">
+    <parent link="right_wrist_3_link" />
+    <child link="right_flange" />
+    <origin rpy="0 -1.5707963267948966 -1.5707963267948966" xyz="0 0 0" />
+  </joint>
+  
+  <link name="right_tool0" />
+  <joint name="right_flange-tool0" type="fixed">
+    
+    <origin rpy="1.5707963267948966 0 1.5707963267948966" xyz="0 0 0" />
+    <parent link="right_flange" />
+    <child link="right_tool0" />
+  </joint>
+
+  
+  <link name="right_grasp_center" />
+  <joint name="right_tool0-grasp_center" type="fixed">
+    <origin rpy="0 0 0" xyz="0 0 0.175" />
+    <parent link="right_tool0" />
+    <child link="right_grasp_center" />
+  </joint>
+
+  
+  
+  <link name="right_ag95_base_link">
+    
+    <inertial>
+      <origin rpy="0 0 0" xyz="7.892486664218268e-13 9.73814800116557e-05 0.0030311891257515876" />
+      <mass value="0.05335674905975589" />
+      <inertia ixx="1.1649107960000001e-05" ixy="0.0" ixz="-0.0" iyy="3.5238551579e-05" iyz="0.0" izz="4.6013976442e-05" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/visual/base_link.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="">
+        <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/collision/base_link.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  
+  <link name="right_ag95_body">
+    
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.040363309423792425 0.014263796342398428 0.04377145101823153" />
+      <mass value="0.7808032509181286" />
+      <inertia ixx="0.001123265235043" ixy="-8.736830970000001e-07" ixz="-2.621049291e-06" iyy="0.001299749220637" iyz="-5.82455398e-07" izz="0.00045489766583800003" />
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0.0405 0.0143 -0.0147" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/visual/gripper_body.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="">
+        <color rgba="0.1 0.1 0.1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0.0405 0.0143 -0.0147" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/collision/gripper_body.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="right_ag95_body_joint" type="fixed">
+    <origin rpy="0 0 0" xyz="-0.0405 -0.0143 0.0147" />
+    <parent link="right_ag95_base_link" />
+    <child link="right_ag95_body" />
+  </joint>
+  <link name="right_grasp_link" />
+  <joint name="right_grasp_joint" type="fixed">
+    <parent link="right_ag95_base_link" />
+    <child link="right_grasp_link" />
+    <origin rpy="1.5707963267948966 -1.5707963267948966 0" xyz="0.0 0.0 0.19" />
+  </joint>
+  <link name="right_left_outer_knuckle">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.027678515816713697 0.008750002359538555 -4.432690447753185e-07" />
+      <mass value="0.0589066057773107" />
+      <inertia ixx="1e-06" ixy="0.0" ixz="-0.0" iyy="1.7e-05" iyz="0.0" izz="1.7e-05" />
+    </inertial>
+    
+    <visual>
+      <origin rpy="0 0 0" xyz="-0.036673 0.00875 -0.098336" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/visual/outer_knuckle.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="">
+        <color rgba="0.1 0.1 0.1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.036673 0.00875 -0.098336" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/collision/outer_knuckle.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="right_left_inner_knuckle">
+    <inertial>
+      <origin rpy="0 0 0" xyz="-0.001773347637755853 0.025399999999162655 0.028950024725163018" />
+      <mass value="0.07116672022913799" />
+      <inertia ixx="3.7e-05" ixy="0.0" ixz="0.0" iyy="1.7e-05" iyz="-0.0" izz="2.1e-05" />
+    </inertial>
+    
+    <visual>
+      <origin rpy="0 0 0" xyz="-0.016 0.0254 -0.10586" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/visual/inner_knuckle.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="">
+        <color rgba="0.1 0.1 0.1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.016 0.0254 -0.10586" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/collision/inner_knuckle.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="right_left_finger">
+    <inertial>
+      <origin rpy="0 0 0" xyz="-0.013763205176003518 0.008750002316393751 0.007315452388518454" />
+      <mass value="0.035304126564626004" />
+      <inertia ixx="2e-06" ixy="0.0" ixz="1e-06" iyy="4e-06" iyz="-0.0" izz="3e-06" />
+    </inertial>
+    
+    <visual>
+      <origin rpy="0 0 0" xyz="-0.091673 0.00875 -0.098336" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/visual/finger.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="">
+        <color rgba="0.1 0.1 0.1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.091673 0.00875 -0.098336" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/collision/finger.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="right_left_finger_pad">
+    <inertial>
+      <origin rpy="0 0 0" xyz="-0.0022695421476374017 2.3166990085415594e-09 0.00779073905191241" />
+      <mass value="0.047823655444711066" />
+      <inertia ixx="5e-06" ixy="-0.0" ixz="0.0" iyy="4e-06" iyz="0.0" izz="2e-06" />
+    </inertial>
+    
+    <visual>
+      <origin rpy="0 0 0" xyz="-0.0705 -0.0 -0.12056" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/visual/finger_pad.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="">
+        <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.0705 -0.0 -0.12056" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/collision/finger_pad.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="right_left_finger_joint" type="revolute">
+    <origin rpy="0 0.7800050960087859 0" xyz="0.055 0.0 0.0" />
+    <parent link="right_left_outer_knuckle" />
+    <child link="right_left_finger" />
+    <axis xyz="0.0 1.0 -0.0" />
+    <limit effort="50.0" lower="-0.01" upper="0.9400000000000001" velocity="2.1" />
+    <mimic joint="right_left_outer_knuckle_joint" multiplier="1" offset="0" />
+  </joint>
+  <joint name="right_left_inner_knuckle_joint" type="revolute">
+    <origin rpy="0 0.7907912307861107 0.0" xyz="0.0565 -0.0111 0.09116" />
+    <parent link="right_ag95_body" />
+    <child link="right_left_inner_knuckle" />
+    <axis xyz="0.0 -1.0 -0.0" />
+    <limit effort="50.0" lower="-0.01" upper="0.9400000000000001" velocity="2.1" />
+    <mimic joint="right_left_outer_knuckle_joint" multiplier="1" offset="0" />
+  </joint>
+  
+  <joint name="right_left_inner_finger_pad_joint" type="fixed">
+    <origin rpy="0 0 0" xyz="-0.021173 0.00875 0.022224" />
+    <parent link="right_left_finger" />
+    <child link="right_left_finger_pad" />
+  </joint>
+  <joint name="right_left_outer_knuckle_joint" type="revolute">
+    <origin rpy="0 -0.7800050960087859 0" xyz="0.077173 0.00555 0.083636" />
+    <parent link="right_ag95_body" />
+    <child link="right_left_outer_knuckle" />
+    <axis xyz="-0.0 -1.0 0.0" />
+    <limit effort="50.0" lower="0.0" upper="0.93" velocity="2.1" />
+  </joint>
+  <joint name="right_right_finger_joint" type="revolute">
+    <origin rpy="0 0.7800050960087859 0" xyz="0.055 0.0 0.0" />
+    <parent link="right_right_outer_knuckle" />
+    <child link="right_right_finger" />
+    <axis xyz="0.0 1.0 -0.0" />
+    <limit effort="50.0" lower="-0.01" upper="0.9400000000000001" velocity="2.1" />
+    <mimic joint="right_left_outer_knuckle_joint" multiplier="1" offset="0" />
+  </joint>
+  <joint name="right_right_inner_knuckle_joint" type="revolute">
+    <origin rpy="0 0.7907912307861107 -3.141592653589793" xyz="0.0245 0.0397 0.09116" />
+    <parent link="right_ag95_body" />
+    <child link="right_right_inner_knuckle" />
+    <axis xyz="0.0 -1.0 -0.0" />
+    <limit effort="50.0" lower="-0.01" upper="0.9400000000000001" velocity="2.1" />
+    <mimic joint="right_left_outer_knuckle_joint" multiplier="1" offset="0" />
+  </joint>
+  
+  <joint name="right_right_inner_finger_pad_joint" type="fixed">
+    <origin rpy="0 0 0" xyz="-0.021173 0.00875 0.022224" />
+    <parent link="right_right_finger" />
+    <child link="right_right_finger_pad" />
+  </joint>
+  <link name="right_right_outer_knuckle">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.027678515816713697 0.008750002359538555 -4.432690447753185e-07" />
+      <mass value="0.0589066057773107" />
+      <inertia ixx="1e-06" ixy="0.0" ixz="-0.0" iyy="1.7e-05" iyz="0.0" izz="1.7e-05" />
+    </inertial>
+    
+    <visual>
+      <origin rpy="0 0 0" xyz="-0.036673 0.00875 -0.098336" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/visual/outer_knuckle.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="">
+        <color rgba="0.1 0.1 0.1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.036673 0.00875 -0.098336" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/collision/outer_knuckle.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="right_right_inner_knuckle">
+    <inertial>
+      <origin rpy="0 0 0" xyz="-0.001773347637755853 0.025399999999162655 0.028950024725163018" />
+      <mass value="0.07116672022913799" />
+      <inertia ixx="3.7e-05" ixy="0.0" ixz="0.0" iyy="1.7e-05" iyz="-0.0" izz="2.1e-05" />
+    </inertial>
+    
+    <visual>
+      <origin rpy="0 0 0" xyz="-0.016 0.0254 -0.10586" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/visual/inner_knuckle.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="">
+        <color rgba="0.1 0.1 0.1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.016 0.0254 -0.10586" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/collision/inner_knuckle.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="right_right_finger">
+    <inertial>
+      <origin rpy="0 0 0" xyz="-0.013763205176003518 0.008750002316393751 0.007315452388518454" />
+      <mass value="0.035304126564626004" />
+      <inertia ixx="2e-06" ixy="0.0" ixz="1e-06" iyy="4e-06" iyz="-0.0" izz="3e-06" />
+    </inertial>
+    
+    <visual>
+      <origin rpy="0 0 0" xyz="-0.091673 0.00875 -0.098336" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/visual/finger.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="">
+        <color rgba="0.1 0.1 0.1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.091673 0.00875 -0.098336" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/collision/finger.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <link name="right_right_finger_pad">
+    <inertial>
+      <origin rpy="0 0 0" xyz="-0.0022695421476374017 2.3166990085415594e-09 0.00779073905191241" />
+      <mass value="0.047823655444711066" />
+      <inertia ixx="5e-06" ixy="-0.0" ixz="0.0" iyy="4e-06" iyz="0.0" izz="2e-06" />
+    </inertial>
+    
+    <visual>
+      <origin rpy="0 0 0" xyz="-0.0705 -0.0 -0.12056" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/visual/finger_pad.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+      <material name="">
+        <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.0705 -0.0 -0.12056" />
+      <geometry>
+        <mesh filename="/home/wey/Projects/Robot_manipulation_planning_simulation/manipulator_grasp/robot_description/meshes/dh_ag95_description/collision/finger_pad.stl" scale="0.001 0.001 0.001" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="right_right_outer_knuckle_joint" type="revolute">
+    <origin rpy="0 -0.7800050960087859 3.141592653589793" xyz="0.003827000000000011 0.02305 0.083636" />
+    <parent link="right_ag95_body" />
+    <child link="right_right_outer_knuckle" />
+    <axis xyz="-0.0 -1.0 0.0" />
+    <limit effort="50.0" lower="-0.01" upper="0.9400000000000001" velocity="2.1" />
+    <mimic joint="right_left_outer_knuckle_joint" multiplier="1" offset="0" />
+  </joint>
+  <joint name="right_gripper_base_joint" type="fixed">
+    <parent link="right_tool0" />
+    <child link="right_ag95_base_link" />
+    <origin rpy="0 0 0" xyz="0 0 0" />
+  </joint>
+  
+  <joint name="right_base_joint" type="fixed"><parent link="world" /><child link="right_base_link" /><origin xyz="0.8 -0.3 0.745" rpy="0 0 0" /></joint></robot>
