@@ -168,26 +168,11 @@ def run_grasp_inference(color_path, depth_path, sam_mask_path=None):
     # 6. NMS 去重 + 按照得分排序（降序）
     gg.nms().sort_by_score()
 
-    # ===== 新增筛选部分：对抓取预测的接近方向进行垂直角度限制 =====
-    # 将 gg 转换为普通列表
+    # 将 gg 转换为普通列表（角度筛选现在在execute_grasp的世界坐标系中进行）
     all_grasps = list(gg)
-    vertical = np.array([0, 0, 1])  # 期望抓取接近方向（垂直桌面）
-    angle_threshold = np.deg2rad(45)  # 30度的弧度值
-    filtered = []
-    for grasp in all_grasps:
-        # 抓取的接近方向取 grasp.rotation_matrix 的第一列
-        approach_dir = grasp.rotation_matrix[:, 0]
-        # 计算夹角：cos(angle)=dot(approach_dir, vertical)
-        cos_angle = np.dot(approach_dir, vertical)
-        cos_angle = np.clip(cos_angle, -1.0, 1.0)
-        angle = np.arccos(cos_angle)
-        if angle < angle_threshold:
-            filtered.append(grasp)
-    if len(filtered) == 0:
-        print("\n[Warning] No grasp predictions within vertical angle threshold. Using all predictions.")
-        filtered = all_grasps
-    else:
-        print(f"\n[DEBUG] Filtered {len(filtered)} grasps within ±45° of vertical out of {len(all_grasps)} total predictions.")
+    filtered = all_grasps  # 不在相机坐标系筛选，让世界坐标系筛选处理
+    
+    print(f"\n[DEBUG] 共 {len(all_grasps)} 个抓取候选，将在世界坐标系中筛选")
 
     # ===== 新增部分：计算物体中心点 =====
     # 使用点云计算物体的中心点
@@ -221,7 +206,7 @@ def run_grasp_inference(color_path, depth_path, sam_mask_path=None):
         distance_score = 1 - (d / max_distance)
         
         # 综合得分 = 抓取得分 * 权重1 + 距离得分 * 权重2
-        composite_score = g.score * 0.4 + distance_score * 0.6
+        composite_score = g.score * 0.6 + distance_score * 0.4
         # print(f"\n g.score = {g.score}, distance_score = {distance_score}")
         grasp_with_composite_scores.append((g, composite_score))
 
@@ -235,15 +220,29 @@ def run_grasp_inference(color_path, depth_path, sam_mask_path=None):
 
 
 # ================= 仿真执行抓取动作 ====================
-def execute_grasp(env, gg_list, cloud_o3d):
+def execute_grasp(env, gg_list, cloud_o3d, planner_type='rrtconnect'):
     """
     执行抓取动作，控制机器人从初始位置移动到抓取位置，并完成抓取操作。
+    
+    Args:
+        env: UR3eGraspEnv instance
+        gg_list: List of grasp candidates
+        cloud_o3d: Open3D point cloud
+        planner_type: 'rrtconnect' or 'rl_ppo'
     """
+    # Import RL planner if needed
+    rl_planner = None
+    if planner_type == 'rl_ppo':
+        from manipulator_grasp.rl_path_planner.rl_integration import get_rl_planner
+        rl_planner = get_rl_planner()
+        print("[execute_grasp] Using RL PPO planner for approach phase")
+    else:
+        print("[execute_grasp] Using RRT-Connect planner")
 
-    # 0.初始准备阶段
     # 目标：计算抓取位姿 T_wo（物体相对于世界坐标系的位姿）
-    n_wc = np.array([0.0, -1.0, 0.0])   # 相机朝向
-    o_wc = np.array([-1.0, 0.0, -0.2])  # 相机朝向
+    # 相机配置
+    n_wc = np.array([0.0, -1.0, 0.0])   # 相机X轴方向
+    o_wc = np.array([-1.0, 0.0, -0.2])  # 相机Y轴方向 (恢复原始配置)
     t_wc = np.array([1.2, 0.8, 1.6])    # 相机的位置。与scene.xml中保持一致。
 
     n_wp = np.array([0.0, 1.0, 0.0])   # 夹爪放置朝向 （与相机朝向绕z轴翻转180度）
@@ -257,16 +256,38 @@ def execute_grasp(env, gg_list, cloud_o3d):
     action = np.zeros(7)
 
     success_flag = False
-
+    passed_angle_filter = 0
+    skipped_angle_filter = 0
+    rl_approach_success = False  # Track if RL approach was used
+    
     for grasp in gg_list:
         gg = GraspGroup()  # 创建临时容器
         gg.add(grasp)
 
         T_co = sm.SE3.Trans(gg.translations[0]) * sm.SE3(sm.SO3.TwoVectors(x=gg.rotation_matrices[0][:, 1], y=gg.rotation_matrices[0][:, 2]))
         T_wo = T_wc * T_co
-        # print(f'T_wo: {T_wo}')
+        
+        # 在世界坐标系中检查接近方向是否接近垂直
+        # T_wo的旋转矩阵第3列（Z轴）是接近方向
+        world_approach = T_wo.R[:, 2]  # 世界坐标系中的接近方向
+        
+        # 检查与垂直向下方向的夹角（正负Z都检查）
+        vertical = np.array([0, 0, 1])  # 世界坐标系Z轴
+        cos_angle = abs(np.dot(world_approach, vertical))
+        angle_deg = np.rad2deg(np.arccos(np.clip(cos_angle, -1, 1)))
+        
+        # 只接受接近垂直的抓取（角度<45°），避免路径规划困难
+        if angle_deg > 45:
+            skipped_angle_filter += 1
+            continue
+        
+        passed_angle_filter += 1
+        
         T1 = T_wo * sm.SE3(0.0, 0.0, -0.15)
-        # print(f'T1: {T1}')
+        
+        # 调试：打印前3个候选的目标位姿
+        if passed_angle_filter <= 3:
+            print(f"\n[DEBUG] 候选{passed_angle_filter}: T1位置 = {T1.t}, 角度={angle_deg:.1f}°")
         q_start1 = np.array([0.0, -np.pi / 2, 0.0, -np.pi / 2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         q_goal1 = getIk(env, q_start1, T1)
 
@@ -283,9 +304,12 @@ def execute_grasp(env, gg_list, cloud_o3d):
                 if q_goal3 is not None:
                     print("")
                     print("------q_goal: IK solution found------")
+                    
+                    # All approach/grasp/lift phases use RRT-Connect
                     q_traj1 = get_traj(env, q_start1, q_goal1)
                     q_traj2 = get_traj(env, q_start2, q_goal2)
                     q_traj3 = get_traj(env, q_start3, q_goal3)
+                    
                     if q_traj1 is not None and q_traj2 is not None and q_traj3 is not None:
                         print("")
                         print("------Path plan Successful-----")
@@ -326,13 +350,30 @@ def execute_grasp(env, gg_list, cloud_o3d):
         for i in range(50): 
             env.step(action)
 
+        # ========== Place Phase: Choose planner ==========
         T4 = T_wp
         q_start4 = q_goal3
+        rl_place_success = False
+        
         while True:
             q_goal4 = getIk(env, q_start4, T4)
             if q_goal4 is not None:
-                q_traj4 = get_traj(env, q_start4, q_goal4)
-                if q_traj4 is not None:
+                # Try RL planner for place phase (trained for pickup->drop zone)
+                if planner_type == 'rl_ppo' and rl_planner is not None and not rl_place_success:
+                    print("[execute_grasp] Running RL planner for place phase...")
+                    # Target is drop zone (t_wp), which matches RL training
+                    rl_success, rl_traj = rl_planner.run_plan(env, T4.t, visualize=True)
+                    if rl_success:
+                        print("[execute_grasp] RL place successful!")
+                        rl_place_success = True
+                        q_traj4 = None  # RL already executed movement
+                    else:
+                        print("[execute_grasp] RL place failed, falling back to RRT...")
+                        q_traj4 = get_traj(env, q_start4, q_goal4)
+                else:
+                    q_traj4 = get_traj(env, q_start4, q_goal4)
+                
+                if rl_place_success or q_traj4 is not None:
                     print("------q_traj4 plan successful------")
                     q_start5 = q_goal4
                     q_goal5  = q_start1
@@ -341,14 +382,15 @@ def execute_grasp(env, gg_list, cloud_o3d):
                         print("------q_traj5 plan successful------")
                         break
                     else:
-                        print("------q_traj5 plan filed, try again------")
+                        print("------q_traj5 plan failed, try again------")
                 else:
-                    print("------q_traj4 plan filed, try again------")
+                    print("------q_traj4 plan failed, try again------")
 
-        # 4.移动物体到目标放置位置，松开夹爪
-        for i in range(q_traj4.shape[1]): 
-            action[:6] = q_traj4[:6, i]
-            env.step(action)
+        # 4.移动物体到目标放置位置，松开夹爪 (skip if RL already executed place)
+        if not rl_place_success and q_traj4 is not None:
+            for i in range(q_traj4.shape[1]): 
+                action[:6] = q_traj4[:6, i]
+                env.step(action)
         for i in range(920):
             action[-1] -= 0.001
             env.step(action)
@@ -367,6 +409,7 @@ def execute_grasp(env, gg_list, cloud_o3d):
         # while True:
         #     env.step(action)
     else:
+        print(f"\n[DEBUG] 世界坐标系角度筛选：通过{passed_angle_filter}个，跳过{skipped_angle_filter}个")
         print("Grasp Failed")
         # while True:
         #     env.step(action)

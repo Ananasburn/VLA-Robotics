@@ -16,8 +16,7 @@ def getIk(env, init_state, T_target):
         env.target_frame,
         target_tform,
         init_state=init_state.copy(),
-        verbose=True,
-        # verbose=False,
+        verbose=False,  # 关闭详细输出，避免干扰
     )
     return q_sol
         

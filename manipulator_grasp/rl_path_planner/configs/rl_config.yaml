@@ -1,0 +1,62 @@
+# RL Path Planner Configuration
+# 强化学习路径规划器配置文件
+
+# 训练参数
+training:
+  total_timesteps: 1000000  # 总训练步数
+  n_envs: 8                 # 并行环境数量（推荐：8-16）
+  seed: 42                  # 随机种子
+  device: "cuda"            # 设备 (cuda/cpu/auto)
+  save_freq: 50000          # 模型保存频率
+  
+# PPO 超参数
+ppo:
+  learning_rate: 0.0003     # 学习率
+  n_steps: 2048             # 每次更新的步数
+  batch_size: 256           # 批大小
+  n_epochs: 10              # 每次更新的训练轮数
+  gamma: 0.99               # 折扣因子
+  gae_lambda: 0.95          # GAE lambda
+  clip_range: 0.2           # PPO clip range
+  vf_coef: 0.5              # Value function 系数
+  ent_coef: 0.005           # 熵系数（探索）
+  max_grad_norm: 0.5        # 梯度裁剪
+
+# 策略网络架构
+policy:
+  type: "MlpPolicy"
+  net_arch:
+    pi: [256, 128]          # Actor 网络
+    vf: [256, 128]          # Critic 网络
+  activation_fn: "relu"
+
+# 环境参数
+environment:
+  max_steps: 200            # 每个episode最大步数
+  success_threshold: 0.05   # 成功判定阈值 (米)
+  
+  # Zone 定义
+  pickup_zone:
+    center: [1.4, 0.6, 0.73]
+    size: [0.2, 0.6, 0.01]
+    sample_radius: 0.3      # 起始点采样半径
+    
+  drop_zone:
+    center: [0.6, 0.2, 0.73]
+    size: [0.2, 0.2, 0.01]
+
+  # 奖励配置
+  reward:
+    distance_weight: 10.0
+    smoothness_weight: 0.1
+    collision_penalty: -50.0
+    success_bonus: 100.0
+    time_penalty: -0.1
+    joint_limit_penalty: -10.0
+
+# 日志配置
+logging:
+  log_dir: "manipulator_grasp/rl_path_planner/logs"
+  model_dir: "manipulator_grasp/rl_path_planner/models"
+  verbose: 1
+  save_replay_buffer: false

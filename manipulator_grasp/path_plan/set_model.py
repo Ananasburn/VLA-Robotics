@@ -25,11 +25,13 @@ def add_self_collisions(model, collision_model, srdf_path):
 
 def add_object_collisions(model, collision_model, visual_model, inflation_radius=0.0):
     # Add the collision objects
+    # 降低地面碰撞体高度，避免与夹爪在抓取位置碰撞
+    # z=0.60, 厚度0.05 -> 碰撞范围0.575-0.625（远离物体高度0.735）
     ground_plane = pinocchio.GeometryObject(
         "ground_plane",
         0,
-        pinocchio.SE3(np.eye(3), np.array([0.8, 0.6, 0.69])),
-        coal.Box(1.6, 1.2, 0.1),
+        pinocchio.SE3(np.eye(3), np.array([0.8, 0.6, 0.60])),
+        coal.Box(1.6, 1.2, 0.05),
     )
     ground_plane.meshColor = np.array([0.5, 0.5, 0.5, 0.5])
     visual_model.addGeometryObject(ground_plane)
@@ -133,6 +135,12 @@ def add_object_collisions(model, collision_model, visual_model, inflation_radius
     set_collisions(model, collision_model, "right_finger", "ground_plane", False)
     set_collisions(model, collision_model, "left_outer_knuckle", "ground_plane", False)
     set_collisions(model, collision_model, "right_outer_knuckle", "ground_plane", False)
+    set_collisions(model, collision_model, "left_inner_knuckle", "ground_plane", False)
+    set_collisions(model, collision_model, "right_inner_knuckle", "ground_plane", False)
+    set_collisions(model, collision_model, "left_inner_finger", "ground_plane", False)
+    set_collisions(model, collision_model, "right_inner_finger", "ground_plane", False)
+    set_collisions(model, collision_model, "ag95_base_link", "ground_plane", False)
+    set_collisions(model, collision_model, "grasp_center", "ground_plane", False)
 
 def load_path_planner(model_roboplan, data_roboplan, collision_model):
     target_frame = "grasp_center"
@@ -146,14 +154,15 @@ def load_path_planner(model_roboplan, data_roboplan, collision_model):
     ]
 
     # Set up the IK solver
+    # 优化IK参数加快求解速度
     ik_options = DifferentialIkOptions(
-        max_iters=800,
-        max_retries=20,
-        damping=0.00001,
-        min_step_size=0.03,
-        max_step_size=0.35,
+        max_iters=200,          # 减少迭代次数加快速度
+        max_retries=10,         # 减少重试次数
+        damping=0.0001,         # 稍微增加阻尼提高稳定性
+        min_step_size=0.05,     # 增大最小步长加快收敛
+        max_step_size=0.5,      # 增大最大步长
         ignore_joint_indices=ignore_joint_indices,
-        rng_seed=None,
+        rng_seed=42,            # 固定种子提高可重复性
     )
     ik = DifferentialIk(
         model_roboplan,
@@ -163,17 +172,18 @@ def load_path_planner(model_roboplan, data_roboplan, collision_model):
         visualizer=None,
     )
 
+    # 优化RRT规划参数以更快找到路径
     rrt_options = RRTPlannerOptions(
-            max_step_size=0.4,
-            max_connection_dist=0.8,
-            rrt_connect=False,
-            bidirectional_rrt=False,
-            rrt_star=True,
-            max_rewire_dist=0.4,
-            max_planning_time=5.0,
+            max_step_size=0.3,              # 增大步长加快探索
+            max_connection_dist=1.0,        # 增大连接距离
+            rrt_connect=True,               # 启用RRT-Connect（双向搜索更快）
+            bidirectional_rrt=True,         # 启用双向RRT
+            rrt_star=False,                 # 关闭RRT*（优化路径但更慢）
+            max_rewire_dist=0.3,
+            max_planning_time=2.0,          # 减少最大规划时间
             fast_return=True,
-            goal_biasing_probability=0.3,
-            collision_distance_padding=0.0001,
+            goal_biasing_probability=0.5,   # 增加目标偏向概率加快收敛
+            collision_distance_padding=0.001,
         )
     
     return target_frame, ik, rrt_options

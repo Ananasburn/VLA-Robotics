@@ -87,12 +87,12 @@
 			<geom name="mocap" type="sphere" size="0.000001"/>
 		</body>
 
-		<body name="Apple" pos="1.4 0.9 0.735" quat="0.7071 0.7071 0 0">
+		<body name="Apple" pos="1.25 0.70 0.74" quat="0.7071 0.7071 0 0">
 			<joint name="Apple_joint" type="free" damping="0.1"/>
 			<geom name="Apple" type="mesh" mesh="Apple" material="apple_mat" />
 		</body>
 
-		<body name="Banana" pos="1.35 0.8 0.797" euler="3.14 0 1.0">
+		<body name="Banana" pos="1.25 0.9 0.74" euler="3.14 0 1.0">
 			<joint name="Banana_joint" type="free" damping="0.1"/>
 			<geom name="Banana" type="mesh" mesh="Banana" material="banana_mat" />
 		</body>

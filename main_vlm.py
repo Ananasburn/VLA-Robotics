@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import time
 import torch
 import numpy as np
+import argparse
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(ROOT_DIR, 'graspnet-baseline', 'models'))
@@ -20,10 +21,11 @@ from grasp_process import run_grasp_inference, execute_grasp
 
 
 # 全局变量
-global color_img, depth_img, env
+global color_img, depth_img, env, planner_type
 color_img = None
 depth_img = None
 env = None
+planner_type = 'rrtconnect'  # default planner
 
 # 获取彩色和深度图像数据
 def get_image(env):
@@ -65,7 +67,7 @@ def callback(color_frame, depth_frame):
 
 
 def test_grasp():
-    global color_img, depth_img, env
+    global color_img, depth_img, env, planner_type
 
     if color_img is None or depth_img is None:
         print("[WARNING] Waiting for image data...")
@@ -79,7 +81,7 @@ def test_grasp():
 
     gg_list, cloud_o3d = run_grasp_inference(color_img, depth_img, masks)
 
-    execute_grasp(env, gg_list, cloud_o3d)
+    execute_grasp(env, gg_list, cloud_o3d, planner_type=planner_type)
 
     # 释放抓取模型的内存
     del gg_list
@@ -88,6 +90,18 @@ def test_grasp():
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='VLM-based Grasp with Path Planning')
+    parser.add_argument(
+        '--planner', 
+        type=str, 
+        choices=['rl_ppo', 'rrtconnect'], 
+        default='rrtconnect',
+        help='Path planner to use: rl_ppo (RL PPO policy) or rrtconnect (RRT-Connect, default)'
+    )
+    args = parser.parse_args()
+    
+    planner_type = args.planner
+    print(f"[main_vlm] Using planner: {planner_type}")
     
     env = UR3eGraspEnv()
     env.reset()
