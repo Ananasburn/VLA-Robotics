@@ -234,10 +234,11 @@ def execute_grasp(env, gg_list, cloud_o3d, planner_type='rrtconnect'):
     rl_planner = None
     if planner_type == 'rl_ppo':
         from manipulator_grasp.rl_path_planner.rl_integration import get_rl_planner
-        rl_planner = get_rl_planner()
-        print("[execute_grasp] Using RL PPO planner for approach phase")
+        rl_planner = get_rl_planner(phase='place')
+        print(f"[execute_grasp] Using RL PPO planner for place phase")
+        print(f"[execute_grasp] Model target: {rl_planner.training_target}")
     else:
-        print("[execute_grasp] Using RRT-Connect planner")
+        print(f"[execute_grasp] Using RRT-Connect planner")
 
     # 目标：计算抓取位姿 T_wo（物体相对于世界坐标系的位姿）
     # 相机配置

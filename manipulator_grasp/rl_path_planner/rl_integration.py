@@ -15,38 +15,55 @@ class RLPathPlanner:
     """
     Wrapper class for using a trained PPO model for path planning.
     
-    The model is trained in task-space: it takes observation containing
-    (ee_pos, ee_quat, joint_pos, target_pos) and outputs joint position deltas.
-    
-    IMPORTANT: This model was trained with a FIXED target (drop_zone_center).
-    It does not generalize to arbitrary targets.
+    Supports both place phase (default) and approach phase models.
+    Model paths are managed via model_config.py for easy switching.
     """
     
-    # Default model path
-    DEFAULT_MODEL_DIR = os.path.join(
-        os.path.dirname(__file__), 
-        'models', 
-        'task_space_v5_8_collision_check'
-    )
-    
-    # Training target (MUST match rl_task_space_env.py drop_zone_center)
-    TRAINING_DROP_ZONE = np.array([0.6, 0.2, 0.83])
-    
-    def __init__(self, model_path: str = None, vecnormalize_path: str = None):
+    def __init__(self, model_path: str = None, vecnormalize_path: str = None, phase: str = 'place',
+                 action_scale: float = None, substeps: int = None):
         """
         Initialize the RL planner.
         
         Args:
-            model_path: Path to the .zip model file. If None, uses best_model.zip
+            model_path: Path to the .zip model file. If None, uses config default.
             vecnormalize_path: Path to vecnormalize .pkl file. If None, auto-inferred.
+            phase: 'place' or 'approach' - which phase model to use
+            action_scale: Scale factor for actions (lower = slower). Default: 0.15
+            substeps: MuJoCo substeps per RL step (higher = smoother). Default: 15
         """
+        # Import config
+        from . import model_config
+        
+        # Use config if no path provided
         if model_path is None:
-            model_path = os.path.join(self.DEFAULT_MODEL_DIR, 'best_model.zip')
+            if phase == 'place':
+                config = model_config.get_place_phase_config()
+                model_path = config['model_path']
+                if vecnormalize_path is None:
+                    vecnormalize_path = config['vecnormalize_path']
+                self.training_target = np.array(config['drop_zone_center'])
+                self.success_threshold = config['success_threshold']
+                self.max_steps = config['max_steps']
+            elif phase == 'approach':
+                config = model_config.get_approach_phase_config()
+                model_path = config['model_path']
+                if vecnormalize_path is None:
+                    vecnormalize_path = config['vecnormalize_path']
+                self.training_target = np.array(config['drop_zone_center'])
+                self.success_threshold = config['success_threshold']
+                self.max_steps = config['max_steps']
+            else:
+                raise ValueError(f"Unknown phase: {phase}. Use 'place' or 'approach'")
+        else:
+            # Manual path provided - use default parameters
+            self.training_target = np.array([0.6, 0.2, 0.83])
+            self.success_threshold = 0.10
+            self.max_steps = 500
         
         if not os.path.exists(model_path):
             raise FileNotFoundError(f"Model not found: {model_path}")
         
-        # Infer vecnormalize path if not provided
+        # Infer vecnormalize path if not provided (only if not already set by config)
         if vecnormalize_path is None:
             vecnormalize_path = os.path.join(
                 os.path.dirname(model_path), 
@@ -71,11 +88,12 @@ class RLPathPlanner:
         else:
             print(f"[RL Planner] Warning: VecNormalize not found at {vecnormalize_path}")
         
-        # RL environment parameters (must match training config)
-        self.action_scale = 0.3
-        self.success_threshold = 0.10  # 10cm (more lenient for fallback to RRT)
-        self.max_steps = 200
+        # RL environment parameters (with speed control)
+        self.action_scale = action_scale if action_scale is not None else 0.05  # Reduced from 0.3 for slower motion
+        self.substeps = substeps if substeps is not None else 25  # Increased from 10 for smoother motion
         self.clip_obs = 10.0  # VecNormalize uses clip_obs=10.0
+        
+        print(f"[RL Planner] Speed config: action_scale={self.action_scale}, substeps={self.substeps}")
         
         # Pinocchio model for FK (will be set from env)
         self.pin_model = None
@@ -168,7 +186,7 @@ class RLPathPlanner:
         
         # IMPORTANT: Use the exact training target, not the requested target
         # The model was trained with a fixed target and doesn't generalize
-        actual_target = self.TRAINING_DROP_ZONE.copy()
+        actual_target = self.training_target.copy()
         requested_target = np.array(target_pos)
         
         if np.linalg.norm(actual_target - requested_target) > 0.15:
@@ -212,8 +230,8 @@ class RLPathPlanner:
             # Set control and step simulation
             env.data.ctrl[:6] = q_target
             
-            # Multiple substeps for stability
-            for _ in range(10):
+            # Multiple substeps for stability and smooth motion
+            for _ in range(self.substeps):
                 mujoco.mj_step(env.model, env.data)
             
             if visualize and hasattr(env, 'viewer') and env.viewer is not None:
@@ -223,12 +241,27 @@ class RLPathPlanner:
         return False, trajectory
 
 
-# Singleton instance for caching
-_rl_planner_instance = None
+# Singleton instances for caching (one per phase)
+_rl_planner_instances = {}
 
-def get_rl_planner(model_path: str = None) -> RLPathPlanner:
-    """Get or create a cached RLPathPlanner instance."""
-    global _rl_planner_instance
-    if _rl_planner_instance is None:
-        _rl_planner_instance = RLPathPlanner(model_path)
-    return _rl_planner_instance
+def get_rl_planner(model_path: str = None, phase: str = 'place') -> RLPathPlanner:
+    """
+    Get or create a cached RLPathPlanner instance.
+    
+    Args:
+        model_path: Optional custom model path
+        phase: 'place' or 'approach' - which phase model to use
+    
+    Returns:
+        Cached RLPathPlanner instance for the specified phase
+    """
+    global _rl_planner_instances
+    
+    # Use phase as cache key if using default config, otherwise use model_path
+    cache_key = model_path if model_path is not None else f"default_{phase}"
+    
+    if cache_key not in _rl_planner_instances:
+        print(f"[RL Planner] Creating new planner instance for phase={phase}")
+        _rl_planner_instances[cache_key] = RLPathPlanner(model_path, phase=phase)
+    
+    return _rl_planner_instances[cache_key]
