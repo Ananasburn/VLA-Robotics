@@ -82,7 +82,7 @@ class HybridVecEnv(VecEnv):
             obs = np.vstack([obs_dummy, obs_sub])
             rewards = np.concatenate([rewards_dummy, rewards_sub])
             dones = np.concatenate([dones_dummy, dones_sub])
-            infos = infos_dummy + infos_sub
+            infos = list(infos_dummy) + list(infos_sub)
         else:
             obs = obs_dummy
             rewards = rewards_dummy
