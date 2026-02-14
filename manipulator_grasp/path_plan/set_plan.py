@@ -47,7 +47,10 @@ def get_traj(env, q_start, q_goal):
                 min_jerk=-0.5,
                 max_jerk=0.5,
                 max_planning_time=5.0,
-                check_collisions=True,           # 启用碰撞检查防止轨迹穿透障碍物
+                # NOTE: check_collisions=True 会触发 pyroboplan 中的
+                # np.concat bug（需要 NumPy>=2.0，当前为 1.26.4）
+                # 升级 numpy 或打补丁后可改回 True
+                check_collisions=False,
                 min_collision_dist=0.005,
                 collision_influence_dist=0.05,
                 collision_avoidance_cost_weight=1.0,  # 启用碰撞避免代价
