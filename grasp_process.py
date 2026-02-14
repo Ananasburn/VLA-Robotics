@@ -329,16 +329,21 @@ def execute_grasp(env, gg_list, cloud_o3d, planner_type='rrtconnect'):
         else:
             print("q_goal1: IK solution Failed: try next gg")
 
+    # 每个轨迹 waypoint 执行多步仿真，让 PD 控制器有时间跟踪目标
+    substeps_per_waypoint = 5
+
     if success_flag:
         # 1.接近抓取位姿
         for i in range(q_traj1.shape[1]): 
             action[:6] = q_traj1[:6, i]
-            env.step(action)
+            for _ in range(substeps_per_waypoint):
+                env.step(action)
 
         # 2.执行抓取
         for i in range(q_traj2.shape[1]): 
             action[:6] = q_traj2[:6, i]
-            env.step(action)
+            for _ in range(substeps_per_waypoint):
+                env.step(action)
         for i in range(920):
             action[-1] += 0.001
             env.step(action)
@@ -346,7 +351,8 @@ def execute_grasp(env, gg_list, cloud_o3d, planner_type='rrtconnect'):
         # 3.提起物体
         for i in range(q_traj3.shape[1]): 
             action[:6] = q_traj3[:6, i]
-            env.step(action)
+            for _ in range(substeps_per_waypoint):
+                env.step(action)
 
         for i in range(50): 
             env.step(action)
@@ -391,7 +397,8 @@ def execute_grasp(env, gg_list, cloud_o3d, planner_type='rrtconnect'):
         if not rl_place_success and q_traj4 is not None:
             for i in range(q_traj4.shape[1]): 
                 action[:6] = q_traj4[:6, i]
-                env.step(action)
+                for _ in range(substeps_per_waypoint):
+                    env.step(action)
         for i in range(920):
             action[-1] -= 0.001
             env.step(action)
@@ -402,7 +409,8 @@ def execute_grasp(env, gg_list, cloud_o3d, planner_type='rrtconnect'):
         # 5.回到初始位置
         for i in range(q_traj5.shape[1]): 
             action[:6] = q_traj5[:6, i]
-            env.step(action)
+            for _ in range(substeps_per_waypoint):
+                env.step(action)
 
         for i in range(50): 
             env.step(action)
