@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 import numpy as np
 import torch
 import open3d as o3d
@@ -21,7 +22,54 @@ from graspnet_dataset import GraspNetDataset
 from collision_detector import ModelFreeCollisionDetector
 from data_utils import CameraInfo, create_point_cloud_from_depth_image
 
+logger = logging.getLogger(__name__)
+
 _net = None
+
+
+# ==================== 点云可视化保存工具 ====================
+def save_pointcloud_image(
+    geometries: list,
+    save_path: str,
+    width: int = 1280,
+    height: int = 960,
+    point_size: float = 3.0,
+    background_color: list = None,
+) -> None:
+    """
+    使用 Open3D 离屏渲染将点云场景保存为图片。
+
+    Args:
+        geometries: Open3D 几何体列表（PointCloud, TriangleMesh 等）
+        save_path: 图片保存路径
+        width: 图片宽度（像素）
+        height: 图片高度（像素）
+        point_size: 点云点大小
+        background_color: 背景颜色 [R, G, B]，范围 0~1
+    """
+    if background_color is None:
+        background_color = [0.1, 0.1, 0.1]
+
+    vis = o3d.visualization.Visualizer()
+    vis.create_window(visible=False, width=width, height=height)
+    for geom in geometries:
+        vis.add_geometry(geom)
+
+    render_opt = vis.get_render_option()
+    render_opt.point_size = point_size
+    render_opt.background_color = np.array(background_color)
+
+    # 自动调整视角以适配所有几何体
+    view_ctrl = vis.get_view_control()
+    view_ctrl.set_front([0, 0, -1])
+    view_ctrl.set_up([0, -1, 0])
+    view_ctrl.set_zoom(0.7)
+
+    vis.poll_events()
+    vis.update_renderer()
+    vis.capture_screen_image(save_path, do_render=True)
+    vis.destroy_window()
+    logger.info(f"[SAVE] {save_path}")
 # ==================== 网络加载 ====================
 def get_net():
     """
@@ -39,7 +87,7 @@ def get_net():
                         is_training=False)
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     _net.to(device)
-    checkpoint = torch.load('./logs/log_rs/checkpoint-rs.tar', map_location=device) # checkpoint_path
+    checkpoint = torch.load('./logs/log_rs/checkpoint-rs.tar') # checkpoint_path
     _net.load_state_dict(checkpoint['model_state_dict'])
     _net.eval()
     return _net
@@ -137,7 +185,45 @@ def get_and_process_data(color_path, depth_path, mask_path):
 
 
 # ==================== 主函数：获取抓取预测 ====================
-def run_grasp_inference(color_path, depth_path, sam_mask_path=None):
+def run_grasp_inference(
+    color_path,
+    depth_path,
+    sam_mask_path=None,
+    target_name: str = None,
+    grasp_model: str = 'graspnet',
+):
+    """
+    执行抓取位姿推理，返回排序后的抓取候选列表和物体点云。
+
+    支持多种模型后端：
+    - 'graspnet': GraspNet-baseline（默认）
+    - 'graspgen': NVlabs/GraspGen（基于 Diffusion 的 6-DOF 抓取生成）
+
+    Args:
+        color_path: RGB 图像路径或 numpy 数组
+        depth_path: 深度图路径或 numpy 数组
+        sam_mask_path: SAM 分割掩码路径或 numpy 数组
+        target_name: 目标物体名称（如 'banana'），不为 None 时保存可视化到 {target_name}_gg/
+        grasp_model: 抓取预测模型选择，'graspnet' 或 'graspgen'
+
+    Returns:
+        filtered_gg_list: 按综合得分排序的抓取候选列表
+        cloud_o3d: Open3D 点云对象
+
+    Raises:
+        ValueError: 如果 grasp_model 值无效
+    """
+    if grasp_model == 'graspgen':
+        from grasp_gen_adapter import run_graspgen_inference
+        logger.info("[run_grasp_inference] 使用 GraspGen 模型")
+        return run_graspgen_inference(
+            color_path, depth_path, sam_mask_path, target_name=target_name
+        )
+    elif grasp_model != 'graspnet':
+        raise ValueError(
+            f"无效的 grasp_model: '{grasp_model}'，"
+            f"支持的选项: 'graspnet', 'graspgen'"
+        )
     # 1. 加载网络
     net = get_net()
 
@@ -170,9 +256,23 @@ def run_grasp_inference(color_path, depth_path, sam_mask_path=None):
 
     # 将 gg 转换为普通列表（角度筛选现在在execute_grasp的世界坐标系中进行）
     all_grasps = list(gg)
-    filtered = all_grasps  # 不在相机坐标系筛选，让世界坐标系筛选处理
-    
-    print(f"\n[DEBUG] 共 {len(all_grasps)} 个抓取候选，将在世界坐标系中筛选")
+    vertical = np.array([0, 0, 1])  # 期望抓取接近方向（垂直桌面）
+    angle_threshold = np.deg2rad(45)  # 30度的弧度值
+    filtered = []
+    for grasp in all_grasps:
+        # 抓取的接近方向取 grasp.rotation_matrix 的第一列
+        approach_dir = grasp.rotation_matrix[:, 0]
+        # 计算夹角：cos(angle)=dot(approach_dir, vertical)
+        cos_angle = np.dot(approach_dir, vertical)
+        cos_angle = np.clip(cos_angle, -1.0, 1.0)
+        angle = np.arccos(cos_angle)
+        if angle < angle_threshold:
+            filtered.append(grasp)
+    if len(filtered) == 0:
+        print("\n[Warning] No grasp predictions within vertical angle threshold. Using all predictions.")
+        filtered = all_grasps
+    else:
+        print(f"\n[DEBUG] Filtered {len(filtered)} grasps within ±45° of vertical out of {len(all_grasps)} total predictions.")
 
     # ===== 新增部分：计算物体中心点 =====
     # 使用点云计算物体的中心点
@@ -206,7 +306,7 @@ def run_grasp_inference(color_path, depth_path, sam_mask_path=None):
         distance_score = 1 - (d / max_distance)
         
         # 综合得分 = 抓取得分 * 权重1 + 距离得分 * 权重2
-        composite_score = g.score * 0.6 + distance_score * 0.4
+        composite_score = g.score * 0.9 + distance_score * 0.1
         # print(f"\n g.score = {g.score}, distance_score = {distance_score}")
         grasp_with_composite_scores.append((g, composite_score))
 
@@ -216,11 +316,84 @@ def run_grasp_inference(color_path, depth_path, sam_mask_path=None):
     # 提取排序后的抓取列表
     filtered_gg_list = [g for g, score in grasp_with_composite_scores]
 
+    # ===== 可视化保存：将所有抓取候选点云图保存到文件夹 =====
+    if target_name is not None:
+        _save_grasp_visualizations(
+            cloud_o3d=cloud_o3d,
+            all_grasps=all_grasps,
+            filtered_gg_list=filtered_gg_list,
+            grasp_with_composite_scores=grasp_with_composite_scores,
+            target_name=target_name,
+        )
+
     return filtered_gg_list, cloud_o3d
 
 
+def _save_grasp_visualizations(
+    cloud_o3d: o3d.geometry.PointCloud,
+    all_grasps: list,
+    filtered_gg_list: list,
+    grasp_with_composite_scores: list,
+    target_name: str,
+) -> None:
+    """
+    将 GraspNet 预测的抓取候选可视化保存为图片。
+
+    Args:
+        cloud_o3d: 物体点云
+        all_grasps: NMS 后的所有抓取候选（未经角度和距离筛选）
+        filtered_gg_list: 综合评分排序后的最终抓取候选列表
+        grasp_with_composite_scores: (grasp, composite_score) 元组列表
+        target_name: 目标物体名称，用于创建保存文件夹
+    """
+    save_dir = os.path.join(ROOT_DIR, f"{target_name}_gg")
+    os.makedirs(save_dir, exist_ok=True)
+    print(f"\n{'='*60}")
+    print(f"[VIS] 开始保存 GraspNet 预测可视化到: {save_dir}")
+    print(f"{'='*60}")
+
+    # --- 00: 原始物体点云 ---
+    path_raw = os.path.join(save_dir, "00_raw_pointcloud.png")
+    save_pointcloud_image([cloud_o3d], path_raw)
+    print(f"[SAVE] 原始点云 → {path_raw}")
+
+    # --- 01: 全部 NMS 后候选总览 ---
+    if len(all_grasps) > 0:
+        gg_all = GraspGroup()
+        for g in all_grasps:
+            gg_all.add(g)
+        all_grippers = gg_all.to_open3d_geometry_list()
+        path_all = os.path.join(save_dir, "01_all_grasps_overview.png")
+        save_pointcloud_image([cloud_o3d, *all_grippers], path_all)
+        print(f"[SAVE] 全部候选总览 ({len(all_grasps)}个) → {path_all}")
+
+    # --- 02: 每个独立候选（按综合评分排序后的最终列表）---
+    for idx, (grasp, composite_score) in enumerate(grasp_with_composite_scores):
+        gg_single = GraspGroup()
+        gg_single.add(grasp)
+        single_grippers = gg_single.to_open3d_geometry_list()
+        filename = f"02_grasp_{idx:03d}_score{composite_score:.3f}.png"
+        path_single = os.path.join(save_dir, filename)
+        save_pointcloud_image([cloud_o3d, *single_grippers], path_single)
+        print(f"[SAVE] 候选 #{idx:03d} (综合得分={composite_score:.3f}, 原始得分={grasp.score:.3f}) → {path_single}")
+
+    # --- 03: Top-5 综合排序后的候选 ---
+    top_n = min(5, len(filtered_gg_list))
+    if top_n > 0:
+        gg_top = GraspGroup()
+        for g in filtered_gg_list[:top_n]:
+            gg_top.add(g)
+        top_grippers = gg_top.to_open3d_geometry_list()
+        path_top = os.path.join(save_dir, "03_top5_composite.png")
+        save_pointcloud_image([cloud_o3d, *top_grippers], path_top)
+        print(f"[SAVE] Top-{top_n} 综合排序候选 → {path_top}")
+
+    print(f"\n[VIS] 保存完成！共保存 {2 + len(grasp_with_composite_scores) + 1} 张图片到 {save_dir}")
+    print(f"{'='*60}\n")
+
+
 # ================= 仿真执行抓取动作 ====================
-def execute_grasp(env, gg_list, cloud_o3d, planner_type='rrtconnect'):
+def execute_grasp(env, gg_list, cloud_o3d, planner_type='rrtconnect', target_name: str = None):
     """
     执行抓取动作，控制机器人从初始位置移动到抓取位置，并完成抓取操作。
     
@@ -229,6 +402,7 @@ def execute_grasp(env, gg_list, cloud_o3d, planner_type='rrtconnect'):
         gg_list: List of grasp candidates
         cloud_o3d: Open3D point cloud
         planner_type: 'rrtconnect' or 'rl_ppo'
+        target_name: 目标物体名称，不为 None 时保存最终选中的抓取候选可视化
     """
     # Import RL planner if needed
     rl_planner = None
@@ -262,10 +436,19 @@ def execute_grasp(env, gg_list, cloud_o3d, planner_type='rrtconnect'):
     rl_approach_success = False  # Track if RL approach was used
     
     for grasp in gg_list:
-        gg = GraspGroup()  # 创建临时容器
-        gg.add(grasp)
+        # 兼容 GraspCandidate（来自 GraspGen）和 Grasp（来自 GraspNet-baseline）
+        from grasp_gen_adapter import GraspCandidate
+        if isinstance(grasp, GraspCandidate):
+            # GraspCandidate 直接提供 rotation_matrix 和 translation
+            rot_mat = grasp.rotation_matrix
+            trans = grasp.translation
+        else:
+            gg = GraspGroup()  # 创建临时容器
+            gg.add(grasp)
+            rot_mat = gg.rotation_matrices[0]
+            trans = gg.translations[0]
 
-        T_co = sm.SE3.Trans(gg.translations[0]) * sm.SE3(sm.SO3.TwoVectors(x=gg.rotation_matrices[0][:, 1], y=gg.rotation_matrices[0][:, 2]))
+        T_co = sm.SE3.Trans(trans) * sm.SE3(sm.SO3.TwoVectors(x=rot_mat[:, 1], y=rot_mat[:, 2]))
         T_wo = T_wc * T_co
         
         # 在世界坐标系中检查接近方向是否接近垂直
@@ -305,6 +488,20 @@ def execute_grasp(env, gg_list, cloud_o3d, planner_type='rrtconnect'):
                 if q_goal3 is not None:
                     print("")
                     print("------q_goal: IK solution found------")
+
+                    # 保存最终选中的抓取候选可视化
+                    if target_name is not None:
+                        save_dir = os.path.join(ROOT_DIR, f"{target_name}_gg")
+                        os.makedirs(save_dir, exist_ok=True)
+                        if isinstance(grasp, GraspCandidate):
+                            final_grippers = grasp.to_open3d_geometry_list()
+                        else:
+                            gg_final = GraspGroup()
+                            gg_final.add(grasp)
+                            final_grippers = gg_final.to_open3d_geometry_list()
+                        path_final = os.path.join(save_dir, "04_final_selected_grasp.png")
+                        save_pointcloud_image([cloud_o3d, *final_grippers], path_final)
+                        print(f"[SAVE] 最终选中的抓取候选 → {path_final}")
                     
                     # All approach/grasp/lift phases use RRT-Connect
                     q_traj1 = get_traj(env, q_start1, q_goal1)
@@ -316,7 +513,10 @@ def execute_grasp(env, gg_list, cloud_o3d, planner_type='rrtconnect'):
                         print("------Path plan Successful-----")
                         visual = True
                         if visual:
-                            grippers = gg.to_open3d_geometry_list()
+                            if isinstance(grasp, GraspCandidate):
+                                grippers = grasp.to_open3d_geometry_list()
+                            else:
+                                grippers = gg.to_open3d_geometry_list()
                             o3d.visualization.draw_geometries([cloud_o3d, *grippers])
                             success_flag = True
                             break
@@ -329,21 +529,16 @@ def execute_grasp(env, gg_list, cloud_o3d, planner_type='rrtconnect'):
         else:
             print("q_goal1: IK solution Failed: try next gg")
 
-    # 每个轨迹 waypoint 执行多步仿真，让 PD 控制器有时间跟踪目标
-    substeps_per_waypoint = 5
-
     if success_flag:
         # 1.接近抓取位姿
         for i in range(q_traj1.shape[1]): 
             action[:6] = q_traj1[:6, i]
-            for _ in range(substeps_per_waypoint):
-                env.step(action)
+            env.step(action)
 
         # 2.执行抓取
         for i in range(q_traj2.shape[1]): 
             action[:6] = q_traj2[:6, i]
-            for _ in range(substeps_per_waypoint):
-                env.step(action)
+            env.step(action)
         for i in range(920):
             action[-1] += 0.001
             env.step(action)
@@ -351,8 +546,7 @@ def execute_grasp(env, gg_list, cloud_o3d, planner_type='rrtconnect'):
         # 3.提起物体
         for i in range(q_traj3.shape[1]): 
             action[:6] = q_traj3[:6, i]
-            for _ in range(substeps_per_waypoint):
-                env.step(action)
+            env.step(action)
 
         for i in range(50): 
             env.step(action)
@@ -397,8 +591,7 @@ def execute_grasp(env, gg_list, cloud_o3d, planner_type='rrtconnect'):
         if not rl_place_success and q_traj4 is not None:
             for i in range(q_traj4.shape[1]): 
                 action[:6] = q_traj4[:6, i]
-                for _ in range(substeps_per_waypoint):
-                    env.step(action)
+                env.step(action)
         for i in range(920):
             action[-1] -= 0.001
             env.step(action)
@@ -409,8 +602,7 @@ def execute_grasp(env, gg_list, cloud_o3d, planner_type='rrtconnect'):
         # 5.回到初始位置
         for i in range(q_traj5.shape[1]): 
             action[:6] = q_traj5[:6, i]
-            for _ in range(substeps_per_waypoint):
-                env.step(action)
+            env.step(action)
 
         for i in range(50): 
             env.step(action)
