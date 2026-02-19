@@ -1,6 +1,7 @@
 import os
 import sys
 import logging
+from datetime import datetime
 import numpy as np
 import torch
 import open3d as o3d
@@ -219,10 +220,16 @@ def run_grasp_inference(
         return run_graspgen_inference(
             color_path, depth_path, sam_mask_path, target_name=target_name
         )
+    elif grasp_model == 'grconvnet':
+        from gr_convnet_adapter import run_grconvnet_inference
+        logger.info("[run_grasp_inference] 使用 GR-ConvNet 模型")
+        return run_grconvnet_inference(
+            color_path, depth_path, sam_mask_path, target_name=target_name
+        )
     elif grasp_model != 'graspnet':
         raise ValueError(
             f"无效的 grasp_model: '{grasp_model}'，"
-            f"支持的选项: 'graspnet', 'graspgen'"
+            f"支持的选项: 'graspnet', 'graspgen', 'grconvnet'"
         )
     # 1. 加载网络
     net = get_net()
@@ -257,7 +264,7 @@ def run_grasp_inference(
     # 将 gg 转换为普通列表（角度筛选现在在execute_grasp的世界坐标系中进行）
     all_grasps = list(gg)
     vertical = np.array([0, 0, 1])  # 期望抓取接近方向（垂直桌面）
-    angle_threshold = np.deg2rad(45)  # 30度的弧度值
+    angle_threshold = np.deg2rad(65)  # 30度的弧度值
     filtered = []
     for grasp in all_grasps:
         # 抓取的接近方向取 grasp.rotation_matrix 的第一列
@@ -346,7 +353,8 @@ def _save_grasp_visualizations(
         grasp_with_composite_scores: (grasp, composite_score) 元组列表
         target_name: 目标物体名称，用于创建保存文件夹
     """
-    save_dir = os.path.join(ROOT_DIR, f"{target_name}_gg")
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    save_dir = os.path.join(ROOT_DIR, "Img_grasping", f"{target_name}_gg", timestamp)
     os.makedirs(save_dir, exist_ok=True)
     print(f"\n{'='*60}")
     print(f"[VIS] 开始保存 GraspNet 预测可视化到: {save_dir}")
@@ -367,8 +375,8 @@ def _save_grasp_visualizations(
         save_pointcloud_image([cloud_o3d, *all_grippers], path_all)
         print(f"[SAVE] 全部候选总览 ({len(all_grasps)}个) → {path_all}")
 
-    # --- 02: 每个独立候选（按综合评分排序后的最终列表）---
-    for idx, (grasp, composite_score) in enumerate(grasp_with_composite_scores):
+    # --- 02: 前5个独立候选（按综合评分排序后的最终列表）---
+    for idx, (grasp, composite_score) in enumerate(grasp_with_composite_scores[:5]):
         gg_single = GraspGroup()
         gg_single.add(grasp)
         single_grippers = gg_single.to_open3d_geometry_list()
@@ -442,13 +450,16 @@ def execute_grasp(env, gg_list, cloud_o3d, planner_type='rrtconnect', target_nam
             # GraspCandidate 直接提供 rotation_matrix 和 translation
             rot_mat = grasp.rotation_matrix
             trans = grasp.translation
+            # 直接使用旋转矩阵构造 SE3（不再进行轴置换）
+            # 假设 rot_mat 符合标准约定：Z=Approach, X=Closing/Width
+            T_co = sm.SE3.Rt(rot_mat, trans)
         else:
             gg = GraspGroup()  # 创建临时容器
             gg.add(grasp)
             rot_mat = gg.rotation_matrices[0]
             trans = gg.translations[0]
-
-        T_co = sm.SE3.Trans(trans) * sm.SE3(sm.SO3.TwoVectors(x=rot_mat[:, 1], y=rot_mat[:, 2]))
+            # GraspNet-baseline 需要重构旋转矩阵
+            T_co = sm.SE3.Trans(trans) * sm.SE3(sm.SO3.TwoVectors(x=rot_mat[:, 1], y=rot_mat[:, 2]))
         T_wo = T_wc * T_co
         
         # 在世界坐标系中检查接近方向是否接近垂直
@@ -491,7 +502,8 @@ def execute_grasp(env, gg_list, cloud_o3d, planner_type='rrtconnect', target_nam
 
                     # 保存最终选中的抓取候选可视化
                     if target_name is not None:
-                        save_dir = os.path.join(ROOT_DIR, f"{target_name}_gg")
+                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                        save_dir = os.path.join(ROOT_DIR, "Img_grasping", f"{target_name}_gg", timestamp)
                         os.makedirs(save_dir, exist_ok=True)
                         if isinstance(grasp, GraspCandidate):
                             final_grippers = grasp.to_open3d_geometry_list()

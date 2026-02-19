@@ -27,7 +27,7 @@ depth_img = None
 env = None
 planner_type = 'rrtconnect'  # default planner
 target_name = None  # 目标物体名称，用于保存 GraspNet 预测可视化
-grasp_model_type = 'graspnet'  # 抓取预测模型：'graspnet' 或 'graspgen'
+grasp_model_type = 'graspnet'  # 抓取预测模型：'graspnet'、'graspgen' 或 'grconvnet'
 
 # 获取彩色和深度图像数据
 def get_image(env):
@@ -108,14 +108,14 @@ if __name__ == '__main__':
         '--target',
         type=str,
         default=None,
-        help='Target object name (e.g. banana). When set, saves GraspNet prediction visualizations to {target}_gg/ folder'
+        help='Target object name (e.g. banana). When set, saves GraspNet prediction visualizations to Img_grasping/{target}_gg/ folder'
     )
     parser.add_argument(
         '--grasp_model',
         type=str,
-        choices=['graspnet', 'graspgen'],
+        choices=['graspnet', 'graspgen', 'grconvnet'],
         default='graspnet',
-        help='Grasp prediction model: graspnet (GraspNet-baseline, default) or graspgen (NVlabs GraspGen)'
+        help='Grasp prediction model: graspnet (GraspNet-baseline, default), graspgen (NVlabs GraspGen), or grconvnet (GR-ConvNet)'
     )
     args = parser.parse_args()
     
@@ -125,7 +125,7 @@ if __name__ == '__main__':
     print(f"[main_vlm] Using planner: {planner_type}")
     print(f"[main_vlm] Using grasp model: {grasp_model_type}")
     if target_name:
-        print(f"[main_vlm] Target object: {target_name} (will save grasp visualizations to {target_name}_gg/)")
+        print(f"[main_vlm] Target object: {target_name} (will save grasp visualizations to Img_grasping/{target_name}_gg/)")
     
     env = UR3eGraspEnv()
     env.reset()
