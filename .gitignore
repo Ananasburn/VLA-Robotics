@@ -7,3 +7,6 @@ __pycache__/
 *.png
 manipulator_grasp/rl_path_planner/models/
 manipulator_grasp/rl_path_planner/logs/
+GraspGen/
+GraspGenModels/
+Img_grasping/

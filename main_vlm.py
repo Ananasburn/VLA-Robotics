@@ -21,11 +21,13 @@ from grasp_process import run_grasp_inference, execute_grasp
 
 
 # 全局变量
-global color_img, depth_img, env, planner_type
+global color_img, depth_img, env, planner_type, target_name, grasp_model_type
 color_img = None
 depth_img = None
 env = None
 planner_type = 'rrtconnect'  # default planner
+target_name = None  # 目标物体名称，用于保存 GraspNet 预测可视化
+grasp_model_type = 'graspnet'  # 抓取预测模型：'graspnet'、'graspgen' 或 'grconvnet'
 
 # 获取彩色和深度图像数据
 def get_image(env):
@@ -67,7 +69,7 @@ def callback(color_frame, depth_frame):
 
 
 def test_grasp():
-    global color_img, depth_img, env, planner_type
+    global color_img, depth_img, env, planner_type, target_name, grasp_model_type
 
     if color_img is None or depth_img is None:
         print("[WARNING] Waiting for image data...")
@@ -79,9 +81,13 @@ def test_grasp():
     # 完成后释放SAM和Whisper的内存
     torch.cuda.empty_cache()
 
-    gg_list, cloud_o3d = run_grasp_inference(color_img, depth_img, masks)
+    gg_list, cloud_o3d = run_grasp_inference(
+        color_img, depth_img, masks,
+        target_name=target_name,
+        grasp_model=grasp_model_type,
+    )
 
-    execute_grasp(env, gg_list, cloud_o3d, planner_type=planner_type)
+    execute_grasp(env, gg_list, cloud_o3d, planner_type=planner_type, target_name=target_name)
 
     # 释放抓取模型的内存
     del gg_list
@@ -98,10 +104,28 @@ if __name__ == '__main__':
         default='rrtconnect',
         help='Path planner to use: rl_ppo (RL PPO policy) or rrtconnect (RRT-Connect, default)'
     )
+    parser.add_argument(
+        '--target',
+        type=str,
+        default=None,
+        help='Target object name (e.g. banana). When set, saves GraspNet prediction visualizations to Img_grasping/{target}_gg/ folder'
+    )
+    parser.add_argument(
+        '--grasp_model',
+        type=str,
+        choices=['graspnet', 'graspgen', 'grconvnet'],
+        default='graspnet',
+        help='Grasp prediction model: graspnet (GraspNet-baseline, default), graspgen (NVlabs GraspGen), or grconvnet (GR-ConvNet)'
+    )
     args = parser.parse_args()
     
     planner_type = args.planner
+    target_name = args.target
+    grasp_model_type = args.grasp_model
     print(f"[main_vlm] Using planner: {planner_type}")
+    print(f"[main_vlm] Using grasp model: {grasp_model_type}")
+    if target_name:
+        print(f"[main_vlm] Target object: {target_name} (will save grasp visualizations to Img_grasping/{target_name}_gg/)")
     
     env = UR3eGraspEnv()
     env.reset()
@@ -115,9 +139,3 @@ if __name__ == '__main__':
         color_img, depth_img = get_image(env)
 
         callback(color_img, depth_img)
-
-
-
-
-
-    
