@@ -46,20 +46,18 @@ def get_traj(env, q_start, q_goal):
                 max_accel=0.5,
                 min_jerk=-0.5,
                 max_jerk=0.5,
-                max_planning_time=5.0,
-                # NOTE: check_collisions=True 会触发 pyroboplan 中的
-                # np.concat bug（需要 NumPy>=2.0，当前为 1.26.4）
-                # 升级 numpy 或打补丁后可改回 True
+                max_planning_time=3.0,
                 check_collisions=False,
-                min_collision_dist=0.005,
+                min_collision_dist=0.001,
                 collision_influence_dist=0.05,
-                collision_avoidance_cost_weight=1.0,  # 启用碰撞避免代价
+                collision_avoidance_cost_weight=0.0,
                 collision_link_list=[
-                    "obstacle_box_1",
-                    "obstacle_sphere_1",
-                    "obstacle_sphere_2",
-                    "obstacle_sphere_3",
-                    "ground_plane",
+                    # "obstacle_box_1",
+                    # "obstacle_box_2",
+                    # "obstacle_sphere_1",
+                    # "obstacle_sphere_2",
+                    # "obstacle_sphere_3",
+                    # "ground_plane",
                     "grasp_center",
                 ],
             )         

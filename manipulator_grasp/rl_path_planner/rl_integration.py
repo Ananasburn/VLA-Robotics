@@ -4,14 +4,11 @@ Provides an interface to use trained PPO model for path planning in grasp_proces
 """
 
 import os
-import logging
 import numpy as np
 import pinocchio
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
 import mujoco
-
-logger = logging.getLogger(__name__)
 
 
 class RLPathPlanner:
@@ -91,24 +88,12 @@ class RLPathPlanner:
         else:
             print(f"[RL Planner] Warning: VecNormalize not found at {vecnormalize_path}")
         
-        # RL environment parameters — MUST match training environment (RLPlaceEnv)
-        # Training uses action_scale=0.3, substeps=10
-        self.action_scale = action_scale if action_scale is not None else 0.3
-        self.substeps = substeps if substeps is not None else 10
+        # RL environment parameters (with speed control)
+        self.action_scale = action_scale if action_scale is not None else 0.05  # Reduced from 0.3 for slower motion
+        self.substeps = substeps if substeps is not None else 25  # Increased from 10 for smoother motion
         self.clip_obs = 10.0  # VecNormalize uses clip_obs=10.0
         
-        # Joint limits matching training environment (UR3e)
-        self.joint_limits_low = np.array([-2*np.pi, -2*np.pi, -np.pi, -2*np.pi, -2*np.pi, -2*np.pi])
-        self.joint_limits_high = np.array([2*np.pi, 2*np.pi, np.pi, 2*np.pi, 2*np.pi, 2*np.pi])
-        
-        # Robot link name prefixes for collision detection
-        self._robot_link_prefixes = ('ag95', 'link', 'left', 'right', 'shoulder', 'elbow', 'wrist', 'forearm', 'upper_arm')
-        # Geom pairs to ignore in collision detection (e.g. base-ground)
-        self._ignored_collision_pairs = {
-            frozenset({'base_link_inertia', 'ground_plane'}),
-        }
-        
-        logger.info(f"Speed config: action_scale={self.action_scale}, substeps={self.substeps}")
+        print(f"[RL Planner] Speed config: action_scale={self.action_scale}, substeps={self.substeps}")
         
         # Pinocchio model for FK (will be set from env)
         self.pin_model = None
@@ -179,46 +164,6 @@ class RLPathPlanner:
             return np.clip(normalized, -self.clip_obs, self.clip_obs)
         return obs
     
-    def _check_collision(self, env) -> bool:
-        """
-        检查机器人是否与环境发生碰撞。
-        
-        与训练环境 (RLPlaceEnv._check_collision) 保持一致，
-        只检测涉及机器人 link 的碰撞，忽略场景物体之间的接触。
-        
-        Args:
-            env: UR3eGraspEnv instance
-            
-        Returns:
-            bool: True 表示检测到碰撞
-        """
-        for i in range(env.data.ncon):
-            contact = env.data.contact[i]
-            geom1_name = mujoco.mj_id2name(env.model, mujoco.mjtObj.mjOBJ_GEOM, contact.geom1)
-            geom2_name = mujoco.mj_id2name(env.model, mujoco.mjtObj.mjOBJ_GEOM, contact.geom2)
-            
-            if geom1_name is None or geom2_name is None:
-                continue
-            
-            # 检查是否涉及机器人 link
-            geom1_is_robot = any(prefix in geom1_name for prefix in self._robot_link_prefixes)
-            geom2_is_robot = any(prefix in geom2_name for prefix in self._robot_link_prefixes)
-            
-            if not (geom1_is_robot or geom2_is_robot):
-                continue  # 跳过不涉及机器人的接触
-            
-            # 检查是否被忽略的碰撞对
-            pair = frozenset({geom1_name, geom2_name})
-            if pair in self._ignored_collision_pairs:
-                continue
-            
-            # 检查碰撞力度
-            if contact.dist < 0:  # 负距离表示穿透
-                logger.warning(f"Collision detected: {geom1_name} <-> {geom2_name} (dist={contact.dist:.4f})")
-                return True
-        
-        return False
-
     def run_plan(
         self, 
         env, 
@@ -245,15 +190,12 @@ class RLPathPlanner:
         requested_target = np.array(target_pos)
         
         if np.linalg.norm(actual_target - requested_target) > 0.15:
-            logger.warning(
-                f"Requested target {requested_target} differs from "
-                f"training target {actual_target}"
-            )
+            print(f"[RL Planner] WARNING: Requested target {requested_target} differs from training target {actual_target}")
         
         trajectory = []
         
-        logger.info(f"Starting plan to training target: {actual_target}")
-        logger.info(f"(Requested target was: {requested_target})")
+        print(f"[RL Planner] Starting plan to training target: {actual_target}")
+        print(f"[RL Planner] (Requested target was: {requested_target})")
         
         for step in range(self.max_steps):
             # Get current state
@@ -265,16 +207,11 @@ class RLPathPlanner:
             dist = np.linalg.norm(ee_pos - actual_target)
             
             if step % 20 == 0:
-                logger.info(f"Step {step}: dist={dist:.4f}, ee={ee_pos}")
+                print(f"[RL Planner] Step {step}: dist={dist:.4f}")
             
             if dist < self.success_threshold:
-                logger.info(f"Target reached in {step} steps!")
+                print(f"[RL Planner] Target reached in {step} steps!")
                 return True, trajectory
-            
-            # Collision detection — abort if collision (matching training behavior)
-            if self._check_collision(env):
-                logger.warning(f"Collision at step {step}, aborting RL plan.")
-                return False, trajectory
             
             # Construct observation with TRAINING target (not requested)
             obs = self._make_observation(env, actual_target)
@@ -283,24 +220,24 @@ class RLPathPlanner:
             # Get action from policy
             action, _ = self.model.predict(obs_normalized, deterministic=True)
             
-            # Scale action to joint deltas (matches training action_scale)
+            # Scale action to joint deltas
             scaled_action = action * self.action_scale
             
-            # Apply action with correct joint limits (matching training)
+            # Apply action
             q_target = q_current + scaled_action
-            q_target = np.clip(q_target, self.joint_limits_low, self.joint_limits_high)
+            q_target = np.clip(q_target, -2*np.pi, 2*np.pi)  # Joint limits
             
             # Set control and step simulation
             env.data.ctrl[:6] = q_target
             
-            # Substeps matching training environment
+            # Multiple substeps for stability and smooth motion
             for _ in range(self.substeps):
                 mujoco.mj_step(env.model, env.data)
             
             if visualize and hasattr(env, 'viewer') and env.viewer is not None:
                 env.viewer.sync()
         
-        logger.warning(f"Timeout after {self.max_steps} steps (dist={dist:.4f})")
+        print(f"[RL Planner] Timeout after {self.max_steps} steps (dist={dist:.4f})")
         return False, trajectory
 
 

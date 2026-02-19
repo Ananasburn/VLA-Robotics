@@ -20,6 +20,7 @@ from stable_baselines3.common.vec_env import VecNormalize, DummyVecEnv
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from env.rl_place_env import RLPlaceEnv, make_place_env
+import model_config
 
 
 def evaluate(
@@ -136,12 +137,22 @@ def evaluate(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate Place Phase RL Model")
-    parser.add_argument("--model", type=str, required=True, help="Path to .zip model file or directory")
+    parser.add_argument("--model", type=str, help="Path to .zip model file or directory. Defaults to model_config.py")
     parser.add_argument("--episodes", type=int, default=10, help="Number of evaluation episodes")
     parser.add_argument("--no-viz", action="store_true", help="Disable visualization")
     args = parser.parse_args()
     
-    # If the user provides a directory, try to find the best model automatically
+    # 0. Load defaults from config if not provided
+    norm_path = None
+    
+    if args.model is None:
+        print("Using default model from model_config.py...")
+        config = model_config.get_place_phase_config()
+        args.model = config['model_path']
+        norm_path = config['vecnormalize_path']
+        print(f"Loaded config: {args.model}")
+        
+    # If the user provides a directory (or config returned a directory? Unlikely but check)
     if os.path.isdir(args.model):
         if os.path.exists(os.path.join(args.model, "best_model.zip")):
              args.model = os.path.join(args.model, "best_model.zip")
@@ -161,14 +172,15 @@ if __name__ == "__main__":
                  print(f"Error: No model found in directory {args.model}")
                  sys.exit(1)
 
-    # Infer vecnormalize path
+    # Infer vecnormalize path (if not already set from config)
     if not args.model.endswith(".zip"):
         args.model += ".zip"
         
-    norm_path = args.model.replace(".zip", "_vecnormalize.pkl")
-    base_dir = os.path.dirname(args.model)
+    if norm_path is None:
+        norm_path = args.model.replace(".zip", "_vecnormalize.pkl")
+        base_dir = os.path.dirname(args.model)
     
-    if not os.path.exists(norm_path):
+        if not os.path.exists(norm_path):
         # 1. Try common vecnormalize filenames
         possible_names = [
             "final_model_vecnormalize.pkl",

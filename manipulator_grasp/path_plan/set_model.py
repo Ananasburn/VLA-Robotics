@@ -1,5 +1,8 @@
 import os
-import coal
+try:
+    import coal
+except ImportError:
+    import hppfcl as coal
 import pinocchio
 import numpy as np
 
@@ -172,18 +175,18 @@ def load_path_planner(model_roboplan, data_roboplan, collision_model):
         visualizer=None,
     )
 
-    # 优化RRT规划参数以获得更高质量的路径
+    # 优化RRT规划参数以更快找到路径
     rrt_options = RRTPlannerOptions(
-            max_step_size=0.15,              # 减小步长获得更平滑路径
-            max_connection_dist=0.8,         # 适中的连接距离
-            rrt_connect=True,                # 启用RRT-Connect（双向搜索更快）
-            bidirectional_rrt=True,          # 启用双向RRT
-            rrt_star=False,                  # 关闭RRT*（优化路径但更慢）
+            max_step_size=0.3,              # 增大步长加快探索
+            max_connection_dist=1.0,        # 增大连接距离
+            rrt_connect=True,               # 启用RRT-Connect（双向搜索更快）
+            bidirectional_rrt=True,         # 启用双向RRT
+            rrt_star=False,                 # 关闭RRT*（优化路径但更慢）
             max_rewire_dist=0.3,
-            max_planning_time=5.0,           # 增加规划时间以获得更好路径
+            max_planning_time=2.0,          # 减少最大规划时间
             fast_return=True,
-            goal_biasing_probability=0.3,    # 降低目标偏向以获得更多样的探索
-            collision_distance_padding=0.005, # 增加碰撞安全边距
+            goal_biasing_probability=0.5,   # 增加目标偏向概率加快收敛
+            collision_distance_padding=0.001,
         )
     
     return target_frame, ik, rrt_options

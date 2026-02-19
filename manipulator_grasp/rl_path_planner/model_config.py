@@ -67,7 +67,7 @@ def get_place_phase_config():
     # Auto-detect if paths don't exist
     if not os.path.exists(config['model_path']):
         # Try to find in logs directory instead
-        logs_dir = os.path.join(_BASE_DIR, '..', '..', 'logs')
+        logs_dir = os.path.join(MODELS_DIR, '..', 'logs')
         if os.path.exists(logs_dir):
             # Search for place_with_object models
             for dirname in os.listdir(logs_dir):
