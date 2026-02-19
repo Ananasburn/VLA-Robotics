@@ -396,7 +396,7 @@ def _save_graspgen_visualizations(
     # 避免循环导入
     from grasp_process import save_pointcloud_image
 
-    save_dir = os.path.join(ROOT_DIR, f"{target_name}_gg")
+    save_dir = os.path.join(ROOT_DIR, "Img_grasping", f"{target_name}_gg")
     os.makedirs(save_dir, exist_ok=True)
     logger.info(f"[GraspGen VIS] 保存可视化到: {save_dir}")
 
