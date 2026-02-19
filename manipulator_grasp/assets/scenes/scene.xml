@@ -87,15 +87,29 @@
 			<geom name="mocap" type="sphere" size="0.000001"/>
 		</body>
 
-		<body name="Apple" pos="1.25 0.70 0.74" quat="0.7071 0.7071 0 0">
+		<!-- 原始苹果模型（已注释） -->
+		<body name="Apple" pos="1.25 0.9 0.74" quat="0.7071 0.7071 0 0">
 			<joint name="Apple_joint" type="free" damping="0.1"/>
 			<geom name="Apple" type="mesh" mesh="Apple" material="apple_mat" />
 		</body>
 
-		<body name="Banana" pos="1.25 0.9 0.74" euler="3.14 0 1.0">
+		<!-- 原始香蕉模型（已注释） -->
+		<body name="Banana" pos="1.25 0.7 0.74" euler="3.14 0 1.0">
 			<joint name="Banana_joint" type="free" damping="0.1"/>
 			<geom name="Banana" type="mesh" mesh="Banana" material="banana_mat" />
 		</body>
+
+		<!-- 正方体 (替代苹果) -->
+		<!-- <body name="Cube" pos="1.25 0.9 0.74" quat="0.7071 0.7071 0 0">
+			<joint name="Cube_joint" type="free" damping="0.1"/>
+			<geom name="Cube" type="box" size="0.03 0.03 0.03" rgba="1 0 0 1" condim="6"/>
+		</body> -->
+
+		<!-- 长方体 (替代香蕉) -->
+		<!-- <body name="Box" pos="1.25 0.7 0.74" euler="3.14 0 1.0">
+			<joint name="Box_joint" type="free" damping="0.1"/>
+			<geom name="Box" type="box" size="0.06 0.02 0.02" rgba="1 1 0 1" condim="6"/>
+		</body> -->
 
 		<!-- <body name="Box" pos="1.35 0.8 0.9" quat="1 0 0 0">
 			<joint name="Box" type="free" />
@@ -141,7 +155,7 @@
 
 		<!--Zones-->
 		<body name="zone_pickup" pos="1.4 0.6 0.73" quat="1 0 0 0">
-			<geom name="zone_pickup" type="box" size="0.2 0.6 0.01" rgba="0 1 0 0.1" contype="0" conaffinity="0"/>
+			<geom name="zone_pickup" type="box" size="0.2 0.6 0.01" rgba="1 1 1 1" contype="0" conaffinity="0"/>
 		</body>
 		<body name="zone_drop" pos="0.6 0.2 0.73" quat="1 0 0 0">
 			<geom name="zone_drop" type="box" size="0.2 0.2 0.01" rgba="1 0 0 0.1" contype="0" conaffinity="0"/>
