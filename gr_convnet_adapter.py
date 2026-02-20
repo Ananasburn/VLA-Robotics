@@ -21,12 +21,13 @@ import os
 import sys
 import logging
 from typing import Optional
-
+import cv2
 import numpy as np
 import open3d as o3d
 import torch
 from PIL import Image
 
+from GRConvnet.utils.dataset_processing.grasp import detect_grasps
 # ---------------------------------------------------------------------------
 # 路径配置
 # ---------------------------------------------------------------------------
@@ -259,7 +260,7 @@ def _pixel_grasps_to_3d_poses(
     Returns:
         GraspCandidate 列表，按质量分数降序排列
     """
-    from utils.dataset_processing.grasp import detect_grasps
+
 
     # 1. 检测 2D 抓取候选
     grasps_2d = detect_grasps(q_img, ang_img, width_img, no_grasps=n_grasps)
@@ -530,7 +531,7 @@ def run_grconvnet_inference(
             output_size = q_img.shape[0]  # 224
             _mask_crop = _mask_bool[top:top + output_size, left:left + output_size]
             # 膨胀 mask（确保小物体边缘有足够的有效区域）
-            import cv2
+            
             dilate_kernel = cv2.getStructuringElement(
                 cv2.MORPH_ELLIPSE, (25, 25)
             )
