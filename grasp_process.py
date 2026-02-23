@@ -384,7 +384,7 @@ def execute_grasp(env, gg_list, cloud_o3d, planner_type='rrtconnect'):
                 if rl_place_success or q_traj4 is not None:
                     print("------q_traj4 plan successful------")
                     if rl_place_success:
-                        q_start5 = env.data.qpos[:6].copy()
+                        q_start5 = env.data.qpos[:12].copy()
                     else:
                         q_start5 = q_goal4
                     q_goal5  = q_start1
