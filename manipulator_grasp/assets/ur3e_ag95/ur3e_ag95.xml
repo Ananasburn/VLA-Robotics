@@ -167,6 +167,10 @@
                     <geom class="visual2" mesh="base_link" material="grey"/>
                     <geom class="collision2" mesh="gripper_body"/>
                     <geom class="visual2" mesh="gripper_body" material="black"/>
+                    
+                    <!-- 动态抓取物体可视化包围盒 (默认透明不可见) -->
+                    <!-- pos 设置在夹爪中间，随需要可以微调 -->
+                    <geom name="grasped_object_vis" type="box" size="0.1 0.1 0.1" pos="0 0 0.16" rgba="1 0.5 0 0" contype="0" conaffinity="0" mass="0"/>
 
                     <!-- 左侧机械手结构 -->
                     <body name="left_inner_knuckle" pos="0.016 -0.0254 0.10586" quat="0.922844 0 0.385173 0">

@@ -145,6 +145,59 @@ def add_object_collisions(model, collision_model, visual_model, inflation_radius
     set_collisions(model, collision_model, "ag95_base_link", "ground_plane", False)
     set_collisions(model, collision_model, "grasp_center", "ground_plane", False)
 
+def attach_grasped_object(model, collision_model, visual_model, object_shape_size, object_pose_in_ee=None, object_name="grasped_object"):
+    """
+    在 RRT 规划搬运路线前，将已被抓取的物体作为附加碰撞体绑定到末端。
+    
+    参数:
+    - model, collision_model, visual_model: Pinocchio 构建的模型
+    - object_shape_size: list 或 tuple, 例如 [0.05, 0.05, 0.05] 用于表示长宽高的一半
+    - object_pose_in_ee: pinocchio.SE3, 抓取时物体相对于末端（grasp_center）的位姿偏移; 如果为None则认为在中心
+    """
+    if object_pose_in_ee is None:
+        object_pose_in_ee = pinocchio.SE3.Identity()
+        
+    frame_id = model.getFrameId("grasp_center")
+    parent_joint = model.frames[frame_id].parentJoint
+    
+    placement = model.frames[frame_id].placement * object_pose_in_ee
+    
+    grasped_shape = coal.Box(object_shape_size[0], object_shape_size[1], object_shape_size[2])
+    grasped_obj = pinocchio.GeometryObject(
+        object_name,
+        parent_joint,
+        parent_joint,
+        placement,
+        grasped_shape
+    )
+    
+    grasped_obj.meshColor = np.array([1.0, 0.5, 0.0, 0.6])
+    
+    visual_model.addGeometryObject(grasped_obj)
+    collision_model.addGeometryObject(grasped_obj)
+    
+    obstacle_names = [
+        "ground_plane",
+        "obstacle_box_1",
+        "obstacle_box_2",
+        "obstacle_box_3",
+        "obstacle_sphere_1",
+        "obstacle_sphere_2",
+        "obstacle_sphere_3",
+    ]
+    for obs_name in obstacle_names:
+        set_collisions(model, collision_model, obs_name, object_name, True)
+        
+    gripper_links = [
+        "left_finger_pad", "right_finger_pad", "left_finger", "right_finger",
+        "left_inner_finger", "right_inner_finger", "ag95_base_link", "grasp_center"
+    ]
+    for link in gripper_links:
+        try:
+            set_collisions(model, collision_model, link, object_name, False)
+        except Exception:
+            pass
+
 def load_path_planner(model_roboplan, data_roboplan, collision_model):
     target_frame = "grasp_center"
     ignore_joint_indices = [
@@ -183,7 +236,7 @@ def load_path_planner(model_roboplan, data_roboplan, collision_model):
             bidirectional_rrt=True,         # 启用双向RRT
             rrt_star=False,                 # 关闭RRT*（优化路径但更慢）
             max_rewire_dist=0.3,
-            max_planning_time=2.0,          # 减少最大规划时间
+            max_planning_time=8.0,          # 减少最大规划时间
             fast_return=True,
             goal_biasing_probability=0.5,   # 增加目标偏向概率加快收敛
             collision_distance_padding=0.001,

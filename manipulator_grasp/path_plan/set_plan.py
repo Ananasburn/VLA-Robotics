@@ -20,11 +20,17 @@ def getIk(env, init_state, T_target):
     )
     return q_sol
         
-def get_traj(env, q_start, q_goal): 
+def get_traj(env, q_start, q_goal, override_planner_options=None): 
     # Search for a path
     print("")
     print(f"Planning a path...")
-    planner = RRTPlanner(env.model_roboplan, env.collision_model, options=env.rrt_options)
+    
+    # 允许在外部覆盖原有的 RRT 配置或 collision_model（若需要，不过 env.collision_model 是引用，这里只需确保 RRTplanner 拿到最新的组合即可）
+    # 当动态添加了被夹取物体后，由于 collision_model 被修改了，
+    # 我们应该重新生成一个 RRTPlanner 以确保它加载了新的碰撞检测树
+    options = override_planner_options if override_planner_options is not None else env.rrt_options
+    planner = RRTPlanner(env.model_roboplan, env.collision_model, options=options)
+    
     q_path = planner.plan(q_start, q_goal)
     if q_path is not None and len(q_path) > 0:
         print(f"Got a path with {len(q_path)} waypoints")

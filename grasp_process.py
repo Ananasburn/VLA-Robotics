@@ -9,6 +9,8 @@ from PIL import Image
 import spatialmath as sm
 
 from manipulator_grasp.path_plan.set_plan import getIk, get_traj
+from manipulator_grasp.path_plan.set_model import attach_grasped_object, load_path_planner
+from manipulator_grasp.rl_path_planner.rl_integration import get_rl_planner
 
 from graspnetAPI import GraspGroup
 
@@ -415,7 +417,7 @@ def execute_grasp(env, gg_list, cloud_o3d, planner_type='rrtconnect', target_nam
     # Import RL planner if needed
     rl_planner = None
     if planner_type == 'rl_ppo':
-        from manipulator_grasp.rl_path_planner.rl_integration import get_rl_planner
+        
         rl_planner = get_rl_planner(phase='place')
         print(f"[execute_grasp] Using RL PPO planner for place phase")
         print(f"[execute_grasp] Model target: {rl_planner.training_target}")
@@ -563,6 +565,37 @@ def execute_grasp(env, gg_list, cloud_o3d, planner_type='rrtconnect', target_nam
         for i in range(50): 
             env.step(action)
 
+        # ---------------- 附加夹取的物体作为碰撞体 ----------------
+        if planner_type != 'rl_ppo':
+            print("\n[execute_grasp] Attaching grasped object for collision avoidance in Place Phase...")
+            # 假设一个默认物体大小（例如边长5cm的包围盒的一半）
+            # 也可以尝试从点云获取物体实际的 bounding box
+            default_box_size = [0.05, 0.05, 0.05]   # 这个尺寸会影响路径规划的成功率
+            
+            attach_grasped_object(
+                env.model_roboplan, 
+                env.collision_model, 
+                env.visual_model, 
+                default_box_size, 
+                # 可以添加 Z 方向的一个偏移，比如认为物体质心在夹爪中心往外一些
+                # offset: sm.SE3(0, 0, 0.02) 需要转成 pinocchio.SE3
+                # 如果暂时没有好偏移可以直接给 None
+                # 这里我们假设是在 gripper 中心 
+            )
+            
+            # 【重要修复】因为 env.collision_model 中几何体和碰撞对的数量发生了改变，
+            # 而底层 env.ik（DifferentialIk）里缓存的 geom_data() 尺寸仍是旧的，
+            # 所以我们需要使用新的 model 重新实例化一遍 IK 求解器：
+            _, env.ik, _ = load_path_planner(env.model_roboplan, env.data_roboplan, env.collision_model)
+
+        # ======= 打开可视化包围盒 =======
+        if hasattr(env, 'toggle_grasped_object_vis'):
+            # MuJoCo 的 box size 需要传入半轴长
+            half_box_size = [0.03 / 2.0, 0.03 / 2.0, 0.05 / 2.0]
+            if 'default_box_size' in locals():
+                half_box_size = [s / 2.0 for s in default_box_size]
+            env.toggle_grasped_object_vis(show=True, size=half_box_size)
+
         # ========== Place Phase: Choose planner ==========
         T4 = T_wp
         q_start4 = q_goal3
@@ -611,6 +644,10 @@ def execute_grasp(env, gg_list, cloud_o3d, planner_type='rrtconnect', target_nam
         for i in range(920):
             action[-1] -= 0.001
             env.step(action)
+
+        # ======= 关闭可视化包围盒 =======
+        if hasattr(env, 'toggle_grasped_object_vis'):
+            env.toggle_grasped_object_vis(show=False)
 
         for i in range(50): 
             env.step(action)

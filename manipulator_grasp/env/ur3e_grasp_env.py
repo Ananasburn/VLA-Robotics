@@ -31,6 +31,7 @@ class UR3eGraspEnv:
 
         self.model_roboplan = None
         self.collision_model = None
+        self.visual_model = None
         self.data_roboplan = None
         self.target_frame = None
         self.ik = None
@@ -57,9 +58,9 @@ class UR3eGraspEnv:
         # 初始化路径规划模型
         urdf_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'robot_description', 'urdf', 'ur3e_ag95.urdf')
         srdf_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'robot_description', 'srdf', 'ur3e_ag95.srdf')
-        self.model_roboplan, self.collision_model, visual_model = load_models(urdf_path)
+        self.model_roboplan, self.collision_model, self.visual_model = load_models(urdf_path)
         add_self_collisions(self.model_roboplan, self.collision_model, srdf_path)
-        add_object_collisions(self.model_roboplan, self.collision_model, visual_model, inflation_radius=0.04)
+        add_object_collisions(self.model_roboplan, self.collision_model, self.visual_model, inflation_radius=0.04)
 
         self.data_roboplan = self.model_roboplan.createData()
 
@@ -278,6 +279,26 @@ class UR3eGraspEnv:
         
         # 返回加和的总奖励
         return pos_reward + ori_reward
+
+    def toggle_grasped_object_vis(self, show: bool, size: list = None):
+        """
+        开启或关闭所抓取物体在 MuJoCo 中的包围盒可视化
+        
+        Args:
+            show (bool): 是否显示
+            size (list): 包围盒尺寸（半轴长 [x, y, z]）
+        """
+        geom_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM, "grasped_object_vis")
+        if geom_id != -1:
+            if show:
+                self.model.geom_rgba[geom_id] = [1.0, 0.5, 0.0, 0.6]  # 橙色，半透明
+                if size is not None and len(size) == 3:
+                    self.model.geom_size[geom_id] = size
+            else:
+                self.model.geom_rgba[geom_id] = [1.0, 0.5, 0.0, 0.0]  # 透明隐藏
+            
+            if getattr(self, 'viewer', None) is not None:
+                self.viewer.sync()
 
 
 
