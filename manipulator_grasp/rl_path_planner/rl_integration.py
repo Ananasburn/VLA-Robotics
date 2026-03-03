@@ -106,7 +106,7 @@ class RLPathPlanner:
         self.joint_limits_high = np.array([2*np.pi, 2*np.pi, np.pi, 2*np.pi, 2*np.pi, 2*np.pi])
         
         # Robot link name prefixes for collision detection
-        self._robot_link_prefixes = ('ag95', 'link', 'left', 'right', 'shoulder', 'elbow', 'wrist', 'forearm', 'upper_arm')
+        self._robot_link_prefixes = ('ag95', 'link', 'left', 'right', 'shoulder', 'elbow', 'wrist', 'forearm', 'upper_arm', 'grasped_object_vis')
         # Geom pairs to ignore in collision detection (e.g. base-ground)
         self._ignored_collision_pairs = {
             frozenset({'base_link_inertia', 'ground_plane'}),

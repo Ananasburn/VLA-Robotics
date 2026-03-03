@@ -489,7 +489,11 @@ def execute_grasp(env, gg_list, cloud_o3d, planner_type='rrtconnect', target_nam
         q_goal1 = getIk(env, q_start1, T1)
 
         if q_goal1 is not None:
-            T2 = T_wo
+            # 追加一个局部 Z 轴的深度偏移量（单位：米）
+            # 正值代表沿接近方向（夹爪朝向方向）
+            grasp_depth_offset = 0.02  
+            T2 = T_wo * sm.SE3(0.0, 0.0, grasp_depth_offset)
+            
             q_start2 = q_goal1
             q_goal2 = getIk(env, q_start2, T2)
 
@@ -566,17 +570,18 @@ def execute_grasp(env, gg_list, cloud_o3d, planner_type='rrtconnect', target_nam
             env.step(action)
 
         # ---------------- 附加夹取的物体作为碰撞体 ----------------
+        # [0.1, 0.1, 0.1] 是物体全长尺寸，半轴长为 [0.05, 0.05, 0.05]
+        object_shape_size = [0.1, 0.1, 0.1]
+        half_box_size = [s / 2.0 for s in object_shape_size]
+
         if planner_type != 'rl_ppo':
             print("\n[execute_grasp] Attaching grasped object for collision avoidance in Place Phase...")
-            # 假设一个默认物体大小（例如边长5cm的包围盒的一半）
-            # 也可以尝试从点云获取物体实际的 bounding box
-            default_box_size = [0.05, 0.05, 0.05]   # 这个尺寸会影响路径规划的成功率
             
             attach_grasped_object(
                 env.model_roboplan, 
                 env.collision_model, 
                 env.visual_model, 
-                default_box_size, 
+                half_box_size, 
                 # 可以添加 Z 方向的一个偏移，比如认为物体质心在夹爪中心往外一些
                 # offset: sm.SE3(0, 0, 0.02) 需要转成 pinocchio.SE3
                 # 如果暂时没有好偏移可以直接给 None
@@ -590,10 +595,6 @@ def execute_grasp(env, gg_list, cloud_o3d, planner_type='rrtconnect', target_nam
 
         # ======= 打开可视化包围盒 =======
         if hasattr(env, 'toggle_grasped_object_vis'):
-            # MuJoCo 的 box size 需要传入半轴长
-            half_box_size = [0.03 / 2.0, 0.03 / 2.0, 0.05 / 2.0]
-            if 'default_box_size' in locals():
-                half_box_size = [s / 2.0 for s in default_box_size]
             env.toggle_grasped_object_vis(show=True, size=half_box_size)
 
         # ========== Place Phase: Choose planner ==========

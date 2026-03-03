@@ -294,8 +294,14 @@ class UR3eGraspEnv:
                 self.model.geom_rgba[geom_id] = [1.0, 0.5, 0.0, 0.6]  # 橙色，半透明
                 if size is not None and len(size) == 3:
                     self.model.geom_size[geom_id] = size
+                # 开启碰撞检测，使得 RL 也能检测到物体的碰撞
+                self.model.geom_contype[geom_id] = 1
+                self.model.geom_conaffinity[geom_id] = 1
             else:
                 self.model.geom_rgba[geom_id] = [1.0, 0.5, 0.0, 0.0]  # 透明隐藏
+                # 关闭碰撞检测
+                self.model.geom_contype[geom_id] = 0
+                self.model.geom_conaffinity[geom_id] = 0
             
             if getattr(self, 'viewer', None) is not None:
                 self.viewer.sync()

@@ -77,13 +77,15 @@ class RLTaskSpaceEnv(gym.Env):
         # V3 改进奖励配置 (当前使用)
         # ============================================================
         self.reward_config = {
-            "delta_weight": 100.0,        # 核心引导信号 (提高2倍)
+            "delta_weight": 100.0,        # 核心引导信号
             "proximity_bonus": 0.0,       # 接近奖励 (移除以避免局部最优)
             "smoothness_weight": 0.05,    # 平滑性惩罚
-            "collision_penalty": -1000.0, # 碰撞惩罚 (严格禁止碰撞)
-            "success_bonus": 1000.0,      # 成功奖励 (提高5倍)
-            "time_penalty": -1.0,         # 时间惩罚 (提高惩罚)
+            "collision_penalty": -1000.0, # 碰撞惩罚
+            "success_bonus": 1000.0,      # 成功奖励
+            "time_penalty": -1.0,         # 时间惩罚
             "joint_limit_penalty": 5.0,   # 关节限制惩罚 (用于 barrier function)
+            "safe_distance": 0.05,        # 软排斥区距离阈值 (5cm)，以内给予连续惩罚
+            "repulsion_weight": 5.0,      # 软排斥区惩罚权重
         }
         
         # ============================================================
@@ -159,6 +161,28 @@ class RLTaskSpaceEnv(gym.Env):
         # 随机数生成器
         self.np_random = np.random.default_rng()
         
+        # 初始化避障专用的几何体 ID 集合
+        self._init_obstacle_geoms()
+
+    def _init_obstacle_geoms(self):
+        """初始化用于全过程软避障检测的机器人和障碍物 Geom ID"""
+        robot_prefixes = ('ag95', 'left', 'right', 'link', 'wrist', 'shoulder', 'elbow', 'forearm', 'upper_arm')
+        scene_objects = {
+            'Apple', 'Banana',  # 场景中的物体
+            'simple_table', 'table1', 'table2', 'obstacle_box_1'  # 障碍物、桌子
+        }
+        
+        self.robot_geom_ids = set()
+        self.obstacle_geom_ids = set()
+        
+        for i in range(self.mj_model.ngeom):
+            name = mujoco.mj_id2name(self.mj_model, mujoco.mjtObj.mjOBJ_GEOM, i)
+            if name:
+                if any(p in name for p in robot_prefixes):
+                    self.robot_geom_ids.add(i)
+                elif name in scene_objects:
+                    self.obstacle_geom_ids.add(i)
+        
     def _load_mujoco_model(self):
         """加载MuJoCo模型"""
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -169,6 +193,14 @@ class RLTaskSpaceEnv(gym.Env):
             
         self.mj_model = mujoco.MjModel.from_xml_path(scene_path)
         self.mj_data = mujoco.MjData(self.mj_model)
+        
+        # ====== 启用附带抓取物体的碰撞约束（并膨胀边长到 0.15 以便强化训练避障） ======
+        geom_id = mujoco.mj_name2id(self.mj_model, mujoco.mjtObj.mjOBJ_GEOM, "grasped_object_vis")
+        if geom_id != -1:
+            self.mj_model.geom_size[geom_id] = np.array([0.075, 0.075, 0.075])  # 边长的半值
+            self.mj_model.geom_contype[geom_id] = 1
+            self.mj_model.geom_conaffinity[geom_id] = 1
+            self.mj_model.geom_rgba[geom_id] = [1.0, 0.5, 0.0, 0.2]  # 淡橙色
         
     def _load_pinocchio_model(self):
         """加载Pinocchio模型用于运动学计算"""
@@ -316,11 +348,26 @@ class RLTaskSpaceEnv(gym.Env):
                 
             # 忽略微小接触（与场景物体）
             if geom1 in scene_object_ids or geom2 in scene_object_ids:
-                if contact.dist > -0.005:  # 穿透小于5mm忽略
+                if contact.dist > -0.001:  # 穿透小于1mm忽略
                     continue
                     
             # 其他情况视为碰撞（机器人与障碍物）
-            if contact.dist < -0.01:
+            # 将刚性接触判定阈值放宽到 -0.001 (允许 1mm 正常数值穿透)，防止引擎接触求解器的微量穿透被误判为毁灭性碰撞
+            if contact.dist < -0.001:
+                name1 = mujoco.mj_id2name(self.mj_model, mujoco.mjtObj.mjOBJ_GEOM, geom1)
+                name2 = mujoco.mj_id2name(self.mj_model, mujoco.mjtObj.mjOBJ_GEOM, geom2)
+                
+                # 如果碰撞的两个物体中没有任何一个是机器人本体，忽略
+                robot_prefixes = ('ag95', 'left', 'right', 'link', 'wrist', 'shoulder', 'elbow', 'forearm', 'upper_arm')
+                is_robot1 = any(p in name1 for p in robot_prefixes) if name1 else False
+                is_robot2 = any(p in name2 for p in robot_prefixes) if name2 else False
+                if not (is_robot1 or is_robot2):
+                    continue
+                    
+                if name1 and name2:
+                    # 检查是否为抓取物与机器人自身的碰撞（这属于抓取的预期接触，应忽略）
+                    if (name1 == "grasped_object_vis" and is_robot2) or (name2 == "grasped_object_vis" and is_robot1):
+                        continue
                 return True
                 
         return False
@@ -463,10 +510,41 @@ class RLTaskSpaceEnv(gym.Env):
         reward += joint_limit_penalty
         info["joint_limit_penalty"] = joint_limit_penalty
         info["joint_limit_violation"] = self._check_joint_limits(q)
+        
+        # 9. 障碍物排斥惩罚 (软避障) - 防止整个机械臂碰到障碍物
+        min_obs_dist = self._compute_obstacle_distance()
+        info["min_obs_dist"] = min_obs_dist
+        safe_dist = cfg.get("safe_distance", 0.05)
+        if min_obs_dist < safe_dist:
+            # 距离越近，惩罚越大
+            repulsive_penalty = -cfg.get("repulsion_weight", 5.0) * (safe_dist - min_obs_dist) / safe_dist
+            reward += repulsive_penalty
+            info["repulsive_penalty"] = repulsive_penalty
+        else:
+            info["repulsive_penalty"] = 0.0
             
         info["success"] = reached_goal
         
         return reward, info
+
+    def _compute_obstacle_distance(self) -> float:
+        """计算机器人任何部分与任何障碍物场景物体之间的最短表面几何距离。"""
+        if not hasattr(self, 'robot_geom_ids') or not self.robot_geom_ids or not self.obstacle_geom_ids:
+            return float('inf')
+            
+        min_dist = float('inf')
+        # 使用 MuJoCo 内置的几何体表面测距函数，支持各种形状（长方体、圆柱体等）在三维空间的最短边缘距离
+        # distmax 设置为我们关心的安全距离，超出就不需要精确计算了，以节省性能
+        distmax = self.reward_config.get("safe_distance", 0.05) + 0.01 
+        fromto = np.zeros(6, dtype=np.float64) # 接收测距点的数组
+        
+        for r_id in self.robot_geom_ids:
+            for o_id in self.obstacle_geom_ids:
+                # mj_geomDistance 计算两个 geom 表面的最短欧氏距离
+                dist = mujoco.mj_geomDistance(self.mj_model, self.mj_data, r_id, o_id, distmax, fromto)
+                if dist < min_dist:
+                    min_dist = dist
+        return min_dist
         
     def _get_observation(self) -> np.ndarray:
         """构建观测向量"""
@@ -703,6 +781,5 @@ if __name__ == "__main__":
             
     print(f"Total reward: {total_reward:.2f}")
     
-    input("Press Enter to close...")
     env.close()
     print("Test completed!")
