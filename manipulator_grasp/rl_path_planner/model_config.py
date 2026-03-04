@@ -25,8 +25,8 @@ PLACE_PHASE_CONFIG = {
     # 'model_path': os.path.join(MODELS_DIR, 'place_with_object_v1', 'final_model.zip'),
     # 'vecnormalize_path': os.path.join(MODELS_DIR, 'place_with_object_v1', 'final_model_vecnormalize.pkl'),
     
-    'model_path': os.path.join(MODELS_DIR, 'task_space_avoidance_v1', 'final_model.zip'),
-    'vecnormalize_path': os.path.join(MODELS_DIR, 'task_space_avoidance_v1', 'final_model_vecnormalize.pkl'),
+    'model_path': os.path.join(MODELS_DIR, 'task_space_avoidance_gov1', 'final_model.zip'),
+    'vecnormalize_path': os.path.join(MODELS_DIR, 'task_space_avoidance_gov1', 'final_model_vecnormalize.pkl'),
     
     # Option 3: Use specific checkpoint
     # 'model_path': os.path.join(MODELS_DIR, 'place_with_object_v1', 'place_phase_2500000_steps.zip'),
