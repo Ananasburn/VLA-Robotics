@@ -166,7 +166,7 @@ class RLTaskSpaceEnv(gym.Env):
 
     def _init_obstacle_geoms(self):
         """初始化用于全过程软避障检测的机器人和障碍物 Geom ID"""
-        robot_prefixes = ('ag95', 'left', 'right', 'link', 'wrist', 'shoulder', 'elbow', 'forearm', 'upper_arm')
+        robot_prefixes = ('ag95', 'left', 'right', 'link', 'wrist', 'shoulder', 'elbow', 'forearm', 'upper_arm', 'grasped_object_vis')
         scene_objects = {
             'Apple', 'Banana',  # 场景中的物体
             'simple_table', 'table1', 'table2', 'obstacle_box_1'  # 障碍物、桌子
@@ -289,20 +289,43 @@ class RLTaskSpaceEnv(gym.Env):
             
         return q
             
+    # def _sample_start_position(self) -> np.ndarray:
+    #     """
+    #     在 pickup zone 中心附近采样起始末端位置
+    #     半径 0.3m 的圆圈内随机采样
+    #     """
+    #     # 在 xy 平面上采样
+    #     angle = self.np_random.uniform(0, 2 * np.pi)
+    #     radius = self.np_random.uniform(0, self.start_sample_radius)
+        
+    #     x = self.pickup_zone_center[0] + radius * np.cos(angle)
+    #     y = self.pickup_zone_center[1] + radius * np.sin(angle)
+    #     z = self.pickup_zone_center[2] + 0.05  # 稍微抬高，避免与桌面碰撞
+        
+    #     return np.array([x, y, z])
+
     def _sample_start_position(self) -> np.ndarray:
         """
-        在 pickup zone 中心附近采样起始末端位置
-        半径 0.3m 的圆圈内随机采样
+        在 pickup zone 采样起始末端位置
+        区域限制为：obstacle_box_1 的 y 轴正方向的较大区域内
         """
-        # 在 xy 平面上采样
-        angle = self.np_random.uniform(0, 2 * np.pi)
-        radius = self.np_random.uniform(0, self.start_sample_radius)
+        # obstacle_box_1 (pos: 1.35 0.2 1.0, size: 0.25 0.05 0.26) 
+        # y轴界限 max 为 0.25
+        # zone_pickup (pos: 1.4 0.6 0.73, size: 0.2 0.6 0.01)
+        # x 范围为 [1.2, 1.6], y 范围为 [0.0, 1.2]
+        # 截取 y > 0.25 的部分，并加入 0.05 的安全边界防止碰边
+        x_min = self.pickup_zone_center[0] - self.pickup_zone_size[0] + 0.05
+        x_max = self.pickup_zone_center[0] + self.pickup_zone_size[0] - 0.05
         
-        x = self.pickup_zone_center[0] + radius * np.cos(angle)
-        y = self.pickup_zone_center[1] + radius * np.sin(angle)
+        y_min = 0.30  # obstacle_box_1 y_max (0.25) + 0.05
+        y_max = self.pickup_zone_center[1] + self.pickup_zone_size[1] - 0.05
+        
+        x = self.np_random.uniform(x_min, x_max)
+        y = self.np_random.uniform(y_min, y_max)
         z = self.pickup_zone_center[2] + 0.05  # 稍微抬高，避免与桌面碰撞
         
         return np.array([x, y, z])
+
         
     def _check_collision(self) -> bool:
         """检查机器人是否发生碰撞"""
@@ -358,7 +381,7 @@ class RLTaskSpaceEnv(gym.Env):
                 name2 = mujoco.mj_id2name(self.mj_model, mujoco.mjtObj.mjOBJ_GEOM, geom2)
                 
                 # 如果碰撞的两个物体中没有任何一个是机器人本体，忽略
-                robot_prefixes = ('ag95', 'left', 'right', 'link', 'wrist', 'shoulder', 'elbow', 'forearm', 'upper_arm')
+                robot_prefixes = ('ag95', 'left', 'right', 'link', 'wrist', 'shoulder', 'elbow', 'forearm', 'upper_arm', 'grasped_object_vis')
                 is_robot1 = any(p in name1 for p in robot_prefixes) if name1 else False
                 is_robot2 = any(p in name2 for p in robot_prefixes) if name2 else False
                 if not (is_robot1 or is_robot2):
