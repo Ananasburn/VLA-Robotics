@@ -571,7 +571,7 @@ def execute_grasp(env, gg_list, cloud_o3d, planner_type='rrtconnect', target_nam
 
         # ---------------- 附加夹取的物体作为碰撞体 ----------------
         # [0.1, 0.1, 0.1] 是物体全长尺寸，半轴长为 [0.05, 0.05, 0.05]
-        object_shape_size = [0.1, 0.1, 0.1]
+        object_shape_size = [0.15, 0.15, 0.15]
         half_box_size = [s / 2.0 for s in object_shape_size]
 
         if planner_type != 'rl_ppo':
