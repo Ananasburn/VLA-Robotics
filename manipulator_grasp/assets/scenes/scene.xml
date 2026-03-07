@@ -188,7 +188,7 @@
 			<geom name="obstacle_sphere_1" type="sphere" size="0.1" rgba="0.5 0.5 0.5 1.0"/>
 		</body>
 
-		<body name="obstacle_sphere_2" pos="0.6 0.6 1.5" >
+		<body name="obstacle_sphere_2" pos="0.6 0.6 1.7" >
 			<geom name="obstacle_sphere_2" type="sphere" size="0.15" rgba="0.5 0.5 0.5 1.0"/>
 		</body>
 

@@ -168,9 +168,7 @@ class UR3eGraspEnv:
         #         exit(0)
                 
     def render(self):
-        '''
-        常用于强化学习或机器人控制任务中，提供环境的视觉观测数据。
-        '''
+
         # 更新渲染器中的场景数据
         self.renderer.update_scene(self.data, 0)
         self.depth_renderer.update_scene(self.data, 0)
@@ -248,41 +246,10 @@ class UR3eGraspEnv:
                 return True
         return False
 
-    def compute_reward(self, gripper_pos: np.ndarray, gripper_quat: np.ndarray, target_pos: np.ndarray, target_quat: np.ndarray) -> float:
-        """
-        计算平滑的抓取奖励（基于位置和姿态的误差）。
-        可以通过 tanh 函数将无界的距离/角度差异拉伸到 [0, MAX] 区域内的连续得分。
-        可用于评估 RL 动作或对各种算法生成的抓取位姿质量进行二次打分。
-        
-        Args:
-            gripper_pos (np.ndarray): 夹爪末端位置 [x, y, z]
-            gripper_quat (np.ndarray): 夹爪末端四元数 [w, x, y, z] (SciPy标准)
-            target_pos (np.ndarray): 目标位置 [x, y, z]
-            target_quat (np.ndarray): 目标四元数 [w, x, y, z] (SciPy标准)
-            
-        Returns:
-            float: 连续且平滑的奖励值
-        """
-        # 1. 相对位置惩罚/奖励转换
-        rel_pos = target_pos - gripper_pos
-        distance = np.linalg.norm(rel_pos)
-        # 距离越小，奖励越接近 5
-        pos_reward = 5.0 * (1.0 - np.tanh(10.0 * distance))
-        
-        # 2. 相对姿态惩罚/奖励转换
-        # 计算将当前姿态旋转到目标姿态所需的旋转向量
-        rel_rot_vec = (Rotation.from_quat(gripper_quat).inv() * 
-                       Rotation.from_quat(target_quat)).as_rotvec()
-        rot_error = np.linalg.norm(rel_rot_vec)
-        # 姿态误差越小，奖励越接近 1
-        ori_reward = 1.0 * (1.0 - np.tanh(3.0 * rot_error))
-        
-        # 返回加和的总奖励
-        return pos_reward + ori_reward
 
     def toggle_grasped_object_vis(self, show: bool, size: list = None):
         """
-        开启或关闭所抓取物体在 MuJoCo 中的包围盒可视化
+        开启或关闭所抓取物体的包围盒可视化
         
         Args:
             show (bool): 是否显示
