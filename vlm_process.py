@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import torch
 from ultralytics.models.sam import Predictor as SAMPredictor
-
+import os
 import whisper
 import json
 import re
@@ -37,11 +37,11 @@ def encode_np_array(image_np):
 
 
 
-# ----------------------- 多模态模型调用（Qwen） -----------------------
+# ----------------------- 多模态模型调用 -----------------------
 
 def generate_robot_actions(user_command, image_input=None):
     """
-    使用 base64 的方式将 numpy 图像和用户文本指令传给 Qwen 多模态模型，
+    使用 base64 的方式将 numpy 图像和用户文本指令传给多模态模型，
     要求模型返回两部分：
       - 模型返回内容中，第一部分为自然语言响应（说明为何选择该物体），
       - 紧跟其后的部分为纯 JSON 对象，格式如下：
@@ -54,8 +54,10 @@ def generate_robot_actions(user_command, image_input=None):
     返回一个 dict，包含 "response" 和 "coordinates"。
     参数 image_input 为 numpy 数组（BGR 格式）。
     """
-    # 初始化OpenAI客户端
-    client = OpenAI(api_key='sk-BLkhMh6Tp85AQDrcvUa0bB8GvreXDYL1ZuirgSFtRdKzb5SQ', base_url="https://sg.uiuiapi.com/v1")
+    # 初始化OpenAI客户端（指向 Moonshot AI，即 Kimi）
+
+    kimi_api_key = os.environ.get("MOONSHOT_API_KEY", "sk-eqa75woLGTX4RYpNUz9HgttdmOTdz7IJaIwYAOgBg47eWfjO") 
+    client = OpenAI(api_key=kimi_api_key, base_url="https://api.moonshot.cn/v1")
 
     system_prompt = textwrap.dedent("""\
     你是一个精密机械臂视觉控制系统，具备先进的多模态感知能力。请严格按照以下步骤执行任务：
@@ -100,16 +102,10 @@ def generate_robot_actions(user_command, image_input=None):
     messages.append({"role": "user", "content": user_content})
 
     try:
-        # 使用OpenAI客户端调用API
+        # 使用OpenAI客户端调用 Kimi 的视觉 API
         completion = client.chat.completions.create(
-            model="qwen-vl-plus",  # 指定模型名称，请确认服务提供商支持的模型名
-            # model="qwen-vl-max", 
-            # model="gpt-5-mini",
-            # model="gpt-4o",
-            # model="qwen3-vl-235b-a22b",
-            # model="qwen2.5-vl-32b-instruct",
+            model="moonshot-v1-8k-vision-preview",  # Kimi 视觉模型
             messages=messages,
-            # max_tokens=4096,  # 可根据需要调整
             temperature=0.1,   # 降低温度以提高输出的确定性，对结构化输出有益
         )
         
@@ -122,6 +118,8 @@ def generate_robot_actions(user_command, image_input=None):
             json_str = match.group(1)
             try:
                 coord = json.loads(json_str)
+                # Kimi / Qwen commonly output [x, y, w, h] or similar. Let's ensure it's a valid 4-element box.
+                # Just keeping it straightforward.
             except Exception as e:
                 print(f"[警告] JSON 解析失败：{e}")
                 coord = {}
@@ -139,7 +137,7 @@ def generate_robot_actions(user_command, image_input=None):
         print(f"请求失败：{e}")
         return {"response": "处理失败", "coordinates": {}}
 
-# ----------------------- SAM 分割相关 -----------------------
+# ----------------------- SAM 分割 -----------------------
 def choose_model():
     """Initialize SAM predictor with proper parameters"""
     global _sam_predictor
@@ -326,35 +324,29 @@ def voice_command_to_keyword():
 
 
 # ----------------------- 主流程：图像分割 -----------------------
-def segment_image(image_input, output_mask='mask1.png'):
-    # # 1. 使用文字获取目标指令
-    # print("📝 请通过文字描述目标物体及抓取指令...")
-    # command_text = input("请输入: ").strip()
-    # if not command_text:
-    #     print("⚠️ 未识别到语音指令，请重试。")
-    #     return None
-    # print(f"✅ 识别的语音指令：{command_text}")
+def segment_image(image_input, output_mask='mask1.png', manual_select=False):
+    bbox = None
+    if not manual_select:
+        # 1. 使用文字获取目标指令
+        print("📝 Please describe the target object and grasping instructions...")
+        command_text = input("Input here: ").strip()
+        
+        if command_text:
+            print(f"✅ Input recognized: {command_text}")
+            # 2. 通过多模态模型获取检测框
+            print("🤖 Calling Kimi Vision Model...")
+            result = generate_robot_actions(command_text, image_input)
+            natural_response = result["response"]
+            detection_info = result["coordinates"]
+            print("Language Response: ", natural_response)
+            print("Detected Object Info: ", detection_info)
+            
+            # 使用离线TTS播报回应（如有需要可取消注释）
+            # play_tts_offline(natural_response)
+            bbox = detection_info.get("bbox") if detection_info and "bbox" in detection_info else None
+        else:
+            print("⚠️ No valid instruction provided, falling back to manual selection.")
 
-    # # # 1. 使用语音获取目标指令
-    # # print("🎙️ 请通过语音描述目标物体及抓取指令...")
-    # # command_text = voice_command_to_keyword()
-    # # if not command_text:
-    # #     print("⚠️ 未识别到语音指令，请重试。")
-    # #     return None
-    # # print(f"✅ 识别的语音指令：{command_text}")
-
-    # # 2. 通过多模态模型获取检测框
-    # result = generate_robot_actions(command_text, image_input)
-    # natural_response = result["response"]
-    # detection_info = result["coordinates"]
-    # print("自然语言回应：", natural_response)
-    # print("检测到的物体信息：", detection_info)
-
-    # # 仅对模型返回的自然语言回应播报
-    # play_tts_offline(natural_response)
-    
-    # bbox = detection_info.get("bbox") if detection_info and "bbox" in detection_info else None
-    
     # 3. 准备图像供 SAM 使用（转换为 RGB）
     image_rgb = cv2.cvtColor(image_input, cv2.COLOR_BGR2RGB)
 
@@ -362,30 +354,40 @@ def segment_image(image_input, output_mask='mask1.png'):
     predictor = choose_model()
     predictor.set_image(image_rgb)
 
-    bbox = None
-    if bbox:
+    if bbox is not None and not manual_select:
+        # Convert bbox [x, y, w, h] from Kimi to [x1, y1, x2, y2]
+        if len(bbox) == 4:
+            if bbox[2] < bbox[0] or bbox[3] < bbox[1]: # Might be [x, y, w, h]
+                x, y, w, h = bbox
+                bbox = [x, y, x + w, y + h]
+                
         results = predictor(bboxes=[bbox])
         center, mask = process_sam_results(results)
-        print(f"✅ 自动检测到目标,bbox:{bbox}")
+        print(f"✅ Target auto-detected, processed bbox: {bbox}")
     else:
-        print("⚠️ 未检测到目标，请点击图像选择对象")
+        print("⚠️ Waiting for manual target selection (click on the object)...")
         cv2.namedWindow('Select Object', cv2.WINDOW_NORMAL)
         cv2.imshow('Select Object', image_input)
         point = []
 
         def click_handler(event, x, y, flags, param):
             if event == cv2.EVENT_LBUTTONDOWN:
-                point.extend([x, y])
-                print(f"🖱️ 点击坐标：{x}, {y}")
-                cv2.setMouseCallback('Select Object', lambda *args: None)
+                if 0 <= x < image_input.shape[1] and 0 <= y < image_input.shape[0]:
+                    point.extend([x, y])
+                    print(f"🖱️ Clicked coordinates: {x}, {y}")
+                    cv2.setMouseCallback('Select Object', lambda *args: None)
 
         cv2.setMouseCallback('Select Object', click_handler)
         while True:
             key = cv2.waitKey(100)
             if point:
                 break
-            if cv2.getWindowProperty('Select Object', cv2.WND_PROP_VISIBLE) < 1:
-                print("❌ 窗口被关闭，未进行点击")
+            try:
+                if cv2.getWindowProperty('Select Object', cv2.WND_PROP_VISIBLE) < 1:
+                    print("❌ Window closed without selection.")
+                    return None
+            except cv2.error:
+                print("❌ Window closed without selection.")
                 return None
         cv2.destroyAllWindows()
         results = predictor(points=[point], labels=[1])

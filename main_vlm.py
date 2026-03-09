@@ -26,18 +26,19 @@ color_img = None
 depth_img = None
 env = None
 planner_type = 'rrtconnect'  # default planner
-target_name = None  # 目标物体名称，用于保存 GraspNet 预测可视化
+target_name = None  # 目标物体名称，用于保存 GraspNet  or GraspGen or GR-ConvNet预测可视化
 grasp_model_type = 'graspnet'  # 抓取预测模型：'graspnet'、'graspgen' 或 'grconvnet'
+manual_select = False  # 是否手动框选目标物体
 
-# 获取彩色和深度图像数据
+
+
 def get_image(env):
     global color_img, depth_img
-     # 从环境渲染获取图像数据
+
     imgs = env.render()
 
-    # 提取彩色和深度图像数据
-    color_img = imgs['img']   # 这是RGB格式的图像数据
-    depth_img = imgs['depth'] # 这是深度数据
+    color_img = imgs['img']
+    depth_img = imgs['depth']
 
     # 将RGB图像转换为OpenCV常用的BGR格式
     color_img = cv2.cvtColor(color_img, cv2.COLOR_RGB2BGR)
@@ -65,18 +66,23 @@ def callback(color_frame, depth_frame):
     )
 
     if color_img is not None and depth_img is not None:
-        test_grasp()
+        return test_grasp()
+    return True
 
 
 def test_grasp():
-    global color_img, depth_img, env, planner_type, target_name, grasp_model_type
+    global color_img, depth_img, env, planner_type, target_name, grasp_model_type, manual_select
 
     if color_img is None or depth_img is None:
         print("[WARNING] Waiting for image data...")
         return
 
     # 图像处理部分
-    masks = segment_image(color_img) 
+    masks = segment_image(color_img, manual_select=manual_select) 
+
+    if masks is None:
+        print("[WARNING] Target selection failed or cancelled. Exiting.")
+        return False
 
     # 完成后释放SAM和Whisper的内存
     torch.cuda.empty_cache()
@@ -92,6 +98,8 @@ def test_grasp():
     # 释放抓取模型的内存
     del gg_list
     torch.cuda.empty_cache()
+    
+    return True
 
 
 
@@ -108,7 +116,7 @@ if __name__ == '__main__':
         '--target',
         type=str,
         default=None,
-        help='Target object name (e.g. banana). When set, saves GraspNet prediction visualizations to Img_grasping/{target}_gg/ folder'
+        help='Target object name (e.g. banana). When set, saves Grasp-model prediction visualizations to Img_grasping/{target}_gg/ folder'
     )
     parser.add_argument(
         '--grasp_model',
@@ -117,13 +125,20 @@ if __name__ == '__main__':
         default='graspnet',
         help='Grasp prediction model: graspnet (GraspNet-baseline, default), graspgen (NVlabs GraspGen), or grconvnet (GR-ConvNet)'
     )
+    parser.add_argument(
+        '--manual_select',
+        action='store_true',
+        help='Skip VLM inference and use manual mouse click to select the target object'
+    )
     args = parser.parse_args()
     
     planner_type = args.planner
     target_name = args.target
     grasp_model_type = args.grasp_model
+    manual_select = args.manual_select
     print(f"[main_vlm] Using planner: {planner_type}")
     print(f"[main_vlm] Using grasp model: {grasp_model_type}")
+    print(f"[main_vlm] Manual select mode: {manual_select}")
     if target_name:
         print(f"[main_vlm] Target object: {target_name} (will save grasp visualizations to Img_grasping/{target_name}_gg/)")
     
@@ -131,11 +146,31 @@ if __name__ == '__main__':
     env.reset()
 
 
-    while True:
+    try:
+        while True:
 
-        for i in range(100): 
-            env.step()
+            for i in range(100): 
+                env.step()
 
-        color_img, depth_img = get_image(env)
+            color_img, depth_img = get_image(env)
 
-        callback(color_img, depth_img)
+            ret = callback(color_img, depth_img)
+            if ret is False:
+                print("[INFO] Exiting main loop.")
+                break
+    except KeyboardInterrupt:
+        print("\n[INFO] Stopping simulation...")
+    finally:
+        # 清理资源避免段错误 (Segmentation fault)
+        if hasattr(env, 'close') and callable(getattr(env, 'close')):
+            try:
+                env.close()
+            except Exception:
+                pass
+        elif hasattr(env, 'viewer') and hasattr(env.viewer, 'close'):
+            try:
+                env.viewer.close()
+            except Exception:
+                pass
+        cv2.destroyAllWindows()
+        print("[INFO] Exited.")
