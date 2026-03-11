@@ -46,6 +46,7 @@ This project aims to build a simple embodied AI framework **"Semantic Reasoning 
 <div align="center">
   <img src="images/vlm_input.gif" alt="Demo 1: Natural Language Grasping" width="400"/>
   <p><em>User input: "Give me the red fruit". The robot arm accurately identifies the apple, plans the path, and grasps it.</em></p>
+</div>
 
 <div align="center">
 	<img src="images/rl_place_reset.gif" alt="Demo 2: RL Simulation" width="400"/>
