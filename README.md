@@ -1,4 +1,3 @@
-`<a name="readme-top"></a>`
 
 <div align="center">
   <img src="https://img.shields.io/badge/python-3.9-blue.svg" alt="Python Version">
@@ -101,7 +100,6 @@ This project is built using the following outstanding open-source projects and f
 * [Pinocchio](https://github.com/stack-of-tasks/pinocchio)
 * [stable-baselines3](https://github.com/DLR-RM/stable-baselines3)
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ---
 
