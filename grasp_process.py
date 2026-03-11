@@ -535,7 +535,7 @@ def execute_grasp(env, gg_list, cloud_o3d, planner_type='rrtconnect', target_nam
                                 grippers = grasp.to_open3d_geometry_list()
                             else:
                                 grippers = gg.to_open3d_geometry_list()
-                            o3d.visualization.draw_geometries([cloud_o3d, *grippers])
+                            o3d.visualization.draw_geometries([cloud_o3d, *grippers], width=800, height=600)
                             success_flag = True
                             break
                     else:
