@@ -56,7 +56,7 @@ def generate_robot_actions(user_command, image_input=None):
     """
     # 初始化OpenAI客户端（指向 Moonshot AI，即 Kimi）
 
-    kimi_api_key = os.environ.get("MOONSHOT_API_KEY", "sk-eqa75woLGTX4RYpNUz9HgttdmOTdz7IJaIwYAOgBg47eWfjO") 
+    kimi_api_key = os.environ.get("MOONSHOT_API_KEY", "YOUR_API_KEY") 
     client = OpenAI(api_key=kimi_api_key, base_url="https://api.moonshot.cn/v1")
 
     system_prompt = textwrap.dedent("""\

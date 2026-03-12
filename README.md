@@ -173,6 +173,8 @@ python main_vlm.py --planner rl_ppo --grasp_model grconvnet --target apple
 * `--target`: Defines the natural language name of the target object you want the robot to manipulate (e.g., `apple`). When specified, the system will save the grasp model's prediction visualizations to the `Img_grasping/{target}_gg/` directory.
 * `--manual_select`: If added, this flag skips the automated VLM semantic inference step and allows you to manually select the target object by mouse-clicking on it in the generated image.
 
+> **Note**: If you intend to use the VLM, you need to configure your own API key in `vlm_process.py`.
+
 ## Contact
 
 wayneweim@gmail.com
